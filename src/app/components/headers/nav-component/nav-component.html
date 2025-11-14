@@ -1,0 +1,28 @@
+<nav class="navbar">
+  <!-- Lado izquierdo -->
+  <div class="user-section" (click)="toggleMenu()">
+    <img 
+      [src]="userImage || 'assets/default-profile.png'" 
+      class="profile-img"
+    >
+
+    <span class="username">
+      {{ userName || 'Usuario' }}
+    </span>
+
+    <span class="arrow">▾</span>
+
+    <!-- Menú desplegable -->
+    <div class="dropdown" [class.open]="menuOpen()">
+      <a class="dropdown-item">Editar datos de usuario</a>
+      <a class="dropdown-item">Cambiar foto de perfil</a>
+    </div>
+  </div>
+
+  <!-- Lado derecho -->
+  <div class="nav-links">
+    <a routerLink="/courses">Mis cursos</a>
+    <a routerLink="/courses/create">Crear curso</a>
+    <a class="logout">Cerrar sesión</a>
+  </div>
+</nav>

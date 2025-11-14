@@ -1,0 +1,67 @@
+<section class="grades-root">
+
+  <div class="header">
+    <h3>Planilla de notas</h3>
+
+    <form [formGroup]="evalForm" (ngSubmit)="addEvaluation()" class="eval-form">
+      <input type="text" placeholder="Nombre evaluación (ej. Parcial 1)" formControlName="name" />
+      <input type="date" formControlName="date" />
+      <button type="submit" [disabled]="evalForm.invalid">Agregar evaluación</button>
+    </form>
+  </div>
+
+  @if (loading()) {
+    <p class="muted">Cargando...</p>
+  }
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (evaluations().length === 0) {
+    <p class="muted">No hay evaluaciones. Creá una arriba para que aparezcan las columnas.</p>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="sticky-col">Alumno</th>
+          @for (ev of evaluations(); track ev.id) {
+            <th class="eval-header">
+              <div class="eval-title">{{ ev.nombre }}</div>
+              <div class="eval-date">{{ ev.date }}</div>
+              <button class="del-ev" (click)="removeEvaluation(ev.id!)">🗑</button>
+            </th>
+          }
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (st of students(); track st.id) {
+          <tr>
+            <td class="sticky-col name-cell">{{ st.lastName }}, {{ st.firstName }}, {{st.cel}}</td>
+
+            @for (ev of evaluations(); track ev.id) {
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  [value]="getGrade(st.id!, ev.id!)"
+                  (blur)="updateGrade(st.id!, ev.id!, $any($event.target).value)"
+                  (keydown.enter)="$event.preventDefault(); updateGrade(st.id!, ev.id!, $any($event.target).value)"
+                />
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+@if(errorMessage()) {
+  <p style="color:red;">{{ errorMessage() }}</p>
+}

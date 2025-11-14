@@ -1,0 +1,20 @@
+.container {
+  max-width: 650px;
+  margin: auto;
+  padding: 24px;
+}
+
+.course-card {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+  background: #fff;
+  box-shadow: 0 0 6px rgba(0,0,0,0.08);
+}
+
+.empty {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}

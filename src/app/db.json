@@ -1,0 +1,234 @@
+{
+  "professors": [
+    {
+      "id": "1",
+      "name": "Emmanuel",
+      "lastname": "Di Benedetto",
+      "email": "emmadibe@abc.gob.ar",
+      "cel": "2236805313",
+      "password": "1234"
+    },
+    {
+      "id": "ec0d",
+      "name": "Emmanuel",
+      "lastname": "Di Benedetto",
+      "email": "emmanueldibenedetto@abc.gob.ar",
+      "password": "Ifoundaway3",
+      "cel": 2236805313
+    }
+  ],
+  "courses": [
+    {
+      "id": "0eef",
+      "name": "4toC",
+      "school": "EES69",
+      "description": "Curso de prueba",
+      "professorId": 1
+    },
+    {
+      "id": "551b",
+      "name": "5to2da",
+      "school": "EES31",
+      "description": "Mi primera escuela",
+      "professorId": 1762790886593
+    },
+    {
+      "id": "4ea2",
+      "name": "4to2da",
+      "school": "EES24",
+      "description": "Es un curso",
+      "professorId": 1762790886593
+    }
+  ],
+  "students": [
+    {
+      "id": "787a",
+      "firstName": "Emmanuel",
+      "lastName": "Di Benedetto",
+      "cel": "2236805313",
+      "email": "emmadibe@abc.gob.ar",
+      "document": "39966485",
+      "courseId": "0eef"
+    },
+    {
+      "firstName": "Prueba",
+      "lastName": "Alumno",
+      "cel": "111111111",
+      "email": "prueba@x.com",
+      "document": "12345678",
+      "courseId": "0eef",
+      "id": "43a0"
+    },
+    {
+      "id": "c9c7",
+      "firstName": "Juan Manuel",
+      "lastName": "Ainchil",
+      "cel": "113123123",
+      "email": "djdjksjdks@dkwodowd.com",
+      "document": "223324242",
+      "courseId": "551b"
+    },
+    {
+      "id": "7120",
+      "firstName": "Ernesto",
+      "lastName": "Chidichino",
+      "cel": "123232",
+      "email": "",
+      "document": "",
+      "courseId": "551b"
+    },
+    {
+      "id": "6bc9",
+      "firstName": "ddsfaf",
+      "lastName": "ffwfw",
+      "cel": "",
+      "email": "",
+      "document": "",
+      "courseId": "551b"
+    },
+    {
+      "id": "69b3",
+      "firstName": "Natashca",
+      "lastName": "Lima",
+      "cel": "",
+      "email": "",
+      "document": "",
+      "courseId": "551b"
+    },
+    {
+      "id": "0260",
+      "firstName": "Aleksei",
+      "lastName": "Maidana",
+      "cel": "",
+      "email": "",
+      "document": "",
+      "courseId": "4ea2"
+    },
+    {
+      "id": "1e8a",
+      "firstName": "Kay",
+      "lastName": "Marrero",
+      "cel": "",
+      "email": "",
+      "document": "",
+      "courseId": "4ea2"
+    },
+    {
+      "id": "dcf4",
+      "firstName": "Camila",
+      "lastName": "",
+      "cel": "",
+      "email": "",
+      "document": "",
+      "courseId": "4ea2"
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "e7d8",
+      "nombre": "Examen 1",
+      "date": "2023-01-02",
+      "courseId": "0eef"
+    },
+    {
+      "id": "25f6",
+      "courseId": "551b",
+      "nombre": "Argentina 1",
+      "date": "2023-03-02"
+    },
+    {
+      "id": "bafb",
+      "nombre": "Argentina 2",
+      "date": "2021-04-02",
+      "courseId": "551b"
+    },
+    {
+      "id": "5c05",
+      "courseId": "551b",
+      "nombre": "arg 3",
+      "date": "0909-04-02"
+    },
+    {
+      "id": "667c",
+      "courseId": "4ea2",
+      "nombre": "Descolonización",
+      "date": "2025-11-20"
+    },
+    {
+      "id": "6b65",
+      "courseId": "4ea2",
+      "nombre": "Colonización",
+      "date": "0424-03-02"
+    },
+    {
+      "id": "34e9",
+      "courseId": "4ea2",
+      "nombre": "tp3",
+      "date": ""
+    },
+    {
+      "id": "e406",
+      "courseId": "4ea2",
+      "nombre": "tp9",
+      "date": ""
+    }
+  ],
+  "grades": [
+    {
+      "id": "12d8",
+      "courseId": "551b",
+      "studentId": "c9c7",
+      "evaluationId": "25f6",
+      "grade": 10
+    },
+    {
+      "id": "59ca",
+      "courseId": "551b",
+      "studentId": "c9c7",
+      "evaluationId": "bafb",
+      "grade": 5
+    },
+    {
+      "id": "fa64",
+      "courseId": "4ea2",
+      "studentId": "0260",
+      "evaluationId": "667c",
+      "grade": 7
+    },
+    {
+      "id": "1f13",
+      "courseId": "4ea2",
+      "studentId": "1e8a",
+      "evaluationId": "667c",
+      "grade": 9
+    },
+    {
+      "id": "6c60",
+      "courseId": "4ea2",
+      "studentId": "dcf4",
+      "evaluationId": "667c",
+      "grade": 7
+    },
+    {
+      "id": "70e1",
+      "courseId": "4ea2",
+      "studentId": "0260",
+      "evaluationId": "6b65",
+      "grade": 4
+    },
+    {
+      "id": "17ed",
+      "courseId": "4ea2",
+      "studentId": "1e8a",
+      "evaluationId": "6b65",
+      "grade": 8
+    },
+    {
+      "id": "14e3",
+      "courseId": "4ea2",
+      "studentId": "dcf4",
+      "evaluationId": "6b65",
+      "grade": 1
+    }
+  ]
+}
