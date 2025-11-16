@@ -36,7 +36,6 @@ export class AuthService {
 
   // --- LOGIN ---
   login(email: string, password: string): Observable<boolean> {
-  console.log('Intentando login con:', email, password); // ← DEBUG
 
   return this.http.get<Professor[]>(`${this.API_URL}?email=${email}&password=${password}`).pipe(
     map((response) => {
@@ -68,5 +67,11 @@ export class AuthService {
   // --- GET LOGGED USER ---
   getLoggedProfessor(): Professor | null {
     return JSON.parse(localStorage.getItem(this.SESSION_KEY) || 'null');
+  }
+
+  updatePhoto(userId: number, base64: string) {
+    return this.http.patch(`${this.API_URL}/${userId}`, {
+      photoUrl: base64
+    });
   }
 }

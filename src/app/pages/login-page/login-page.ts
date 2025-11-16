@@ -37,26 +37,24 @@ export class LoginPage {
   });
 
   onSubmit() {
-    this.submitted = true;
-    this.errorMessage.set(null);
+  if (this.form.invalid) return;
 
-    if (this.form.invalid) return;
+  this.loading.set(true);
 
-    this.loading.set(true);
+  const { email, password } = this.form.value;
 
-    const ok = this.auth.login(
-      this.form.value.email!,
-      this.form.value.password!
-    );
+  this.auth.login(email!, password!).subscribe({
+    next: ok => {
+      this.loading.set(false);
+      if (!ok) return this.errorMessage.set("Email o contraseña incorrectos.");
 
-    this.loading.set(false);
-
-    if (!ok) {
-      this.errorMessage.set('Credenciales incorrectas. Intentá nuevamente.');
-      return;
+      this.router.navigate(['/course/list']);
+    },
+    error: () => {
+      this.loading.set(false);
+      this.errorMessage.set("Error en el servidor.");
     }
-
-    this.router.navigateByUrl('/course/list');
-  }
+  });
+}
 
 }

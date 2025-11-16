@@ -6,6 +6,6 @@ export interface Professor
     email: string;
     password?: string;
     cel: string;
-    photoUrl: string;
+    photoUrl?: string;
 }
   

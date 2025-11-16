@@ -1,24 +1,17 @@
-/* NAVBAR BASE */
 .navbar {
-  width: 100%;
-  height: 64px;
-  background: linear-gradient(90deg, #1a73e8, #0d47a1);
-  color: white;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 22px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  position: relative;
-  z-index: 100;
-  font-family: 'Inter', sans-serif;
+  align-items: center;
+  background: #1e1e2f;
+  padding: 12px 24px;
+  color: white;
+  font-family: Arial, sans-serif;
 }
 
-/*********** USER SECTION ***********/
+/* Izquierda */
 .user-section {
   display: flex;
   align-items: center;
-  gap: 10px;
   cursor: pointer;
   position: relative;
 }
@@ -27,86 +20,85 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  object-fit: cover;
+  margin-right: 10px;
   border: 2px solid white;
 }
 
 .username {
-  font-weight: 500;
-  letter-spacing: 0.3px;
+  font-weight: 600;
+  margin-right: 6px;
 }
 
-/* Flechita ▼ */
 .arrow {
   font-size: 12px;
-  opacity: 0.8;
 }
 
-/*********** DROPDOWN MENU ***********/
+/* Dropdown */
 .dropdown {
   position: absolute;
-  top: 52px;
+  top: 48px;
   left: 0;
-  background: #ffffff;
-  color: #333;
-  width: 200px;
-  border-radius: 12px;
-  padding: 8px 0;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-6px);
-  transition: all 0.22s ease-in-out;
+  background: white;
+  color: black;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  display: none;
 }
 
 .dropdown.open {
-  opacity: 1;
-  pointer-events: all;
-  transform: translateY(0);
+  display: block;
 }
 
 .dropdown-item {
-  padding: 10px 16px;
+  padding: 8px 12px;
   display: block;
-  text-decoration: none;
-  color: #333;
-  font-size: 15px;
-  transition: background 0.18s;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
 .dropdown-item:hover {
-  background: rgba(0,0,0,0.06);
+  background: #f0f0f0;
 }
 
-/*********** NAV LINKS ***********/
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
+/* Derecha */
 .nav-links a {
   color: white;
   text-decoration: none;
-  font-size: 15px;
+  margin-left: 20px;
   font-weight: 500;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: background 0.25s, transform 0.1s;
 }
 
 .nav-links a:hover {
-  background: rgba(255,255,255,0.15);
-  transform: translateY(-1px);
+  text-decoration: underline;
+}
+
+/* Mini formulario foto */
+.photo-form {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.photo-form input {
+  padding: 6px;
+  margin-bottom: 8px;
+}
+
+.photo-form button {
+  padding: 6px;
+  background: #333;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.photo-form button:hover {
+  background: #555;
 }
 
 .logout {
-  background: rgba(255, 255, 255, 0.18);
-  padding: 8px 14px;
-  border-radius: 8px;
-  transition: background 0.25s;
+  cursor: pointer;
 }
 
-.logout:hover {
-  background: rgba(255, 255, 255, 0.28);
-}

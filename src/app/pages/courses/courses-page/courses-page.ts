@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, effect } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CourseService } from '../../../core/services/course-service';
 import { AuthService } from '../../../core/services/auth-service';
@@ -19,26 +19,42 @@ export class CoursesPage {
   courses = signal<Course[]>([]);
   errorMessage = signal('');
 
-  ngOnInit() {
-    this.loadCourses();
+  constructor() {
+
+    // Se ejecuta cada vez que cambia currentProfessor
+    effect(() => {
+      const professor = this.authService.currentProfessor(); // ✔ obtener valor
+
+      console.log("Profesor actual:", professor?.name);
+
+      if (!professor) {
+        this.errorMessage.set("No hay sesión activa.");
+        this.courses.set([]); // Evita mostrar basura
+        return;
+      }
+
+      // Cargar cursos del profe logueado
+      this.loadCourses(professor.id!);
+    });
   }
 
-  loadCourses() {
-    const professor = this.authService.currentProfessor();
-    console.log("profesor: ", professor?.name);
-    if (!professor) {
-      this.errorMessage.set('No hay sesión activa.');
-      return;
-    }
+  loadCourses(professorId: number) {
+    this.courseService.getCoursesByLoggedProfessor(professorId).subscribe({
+      next: data => this.courses.set(data),
+      error: () => this.errorMessage.set("Error al cargar cursos.")
+    });
+  }
 
-    if (!professor) {
-      this.errorMessage.set('No hay sesión activa.');
-      return;
-    }
+  deleteCourse(id: string) {
+    if (!confirm("¿Seguro que deseas eliminar este curso?")) return;
 
-    this.courseService.getCoursesByLoggedProfessor(professor.id!).subscribe({
-      next: (data) => this.courses.set(data),
-      error: () => this.errorMessage.set('Error al cargar cursos.')
+    this.courseService.deleteCourse(id).subscribe(() => {
+
+      const professor = this.authService.currentProfessor(); // ✔ obtener valor
+
+      if (professor?.id) {
+        this.loadCourses(professor.id); // ✔ ID es number
+      }
     });
   }
 
@@ -47,14 +63,6 @@ export class CoursesPage {
   }
 
   editCourse(id: string) {
-    this.router.navigate(['/course/edit/', id]);
-  }
-
-  deleteCourse(id: string) {
-    if (!confirm('¿Seguro que deseas eliminar este curso?')) return;
-
-    this.courseService.deleteCourse(id).subscribe(() => {
-      this.loadCourses(); // Recarga lista luego de borrar
-    });
+    this.router.navigate(['/course/edit', id]);
   }
 }

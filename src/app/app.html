@@ -1,13 +1,15 @@
-  <header>
-    <app-nav-component [userName]="currentUser.name"
-  [userImage]="currentUser.photoUrl">
-</app-nav-component>
-  </header>
+<header>
+  @if (currentUser()) {
+    <app-nav-component
+      [userName]="currentUser()?.name ?? null"
+      [userImage]="currentUser()?.photoUrl ?? 'assets/default-profile.png'">
+    </app-nav-component>
+  }
+</header>
+<main>
+  <router-outlet></router-outlet>
+</main>
 
-  <main>
-    <router-outlet></router-outlet>
-  </main>
-
-  <footer>
-    <app-footer-component></app-footer-component>
-  </footer>
+<footer>
+  <app-footer-component></app-footer-component>
+</footer>

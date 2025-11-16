@@ -1,7 +1,9 @@
-import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnInit, Output, signal } from '@angular/core';
 import { StudentService } from '../../../core/services/student-service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Student, StudentCreate } from '../../../core/models/student';
+import { Course } from '../../../core/models/course';
+import { CourseService } from '../../../core/services/course-service';
 
 @Component({
   selector: 'app-course-students',
@@ -9,7 +11,7 @@ import { Student, StudentCreate } from '../../../core/models/student';
   templateUrl: './course-student-component.html',
   styleUrl: './course-student-component.css',
 })
-export class CourseStudentComponent
+export class CourseStudentComponent implements OnInit
 {
   @Input() courseId!: string;
 
@@ -17,6 +19,7 @@ export class CourseStudentComponent
 
   private studentService = inject(StudentService);
   private fb = inject(FormBuilder);
+  private courseService = inject(CourseService);
 
   students = signal<Student[]>([]);
   errorMessage = signal<string | null>(null);
