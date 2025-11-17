@@ -8,6 +8,7 @@ import { Course } from '../../../core/models/course';
   selector: 'app-courses-page',
   standalone: true,
   templateUrl: './courses-page.html',
+  styleUrls: ['./courses-page.css'],
   imports: [RouterLink]
 })
 export class CoursesPage {
@@ -26,6 +27,7 @@ export class CoursesPage {
       const professor = this.authService.currentProfessor(); // ✔ obtener valor
 
       console.log("Profesor actual:", professor?.name);
+      console.log("Profesor id:", professor?.id);
 
       if (!professor) {
         this.errorMessage.set("No hay sesión activa.");

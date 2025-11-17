@@ -17,7 +17,7 @@
     <!-- Menú desplegable -->
     <div class="dropdown" [class.open]="menuOpen()">
 
-      <a class="dropdown-item">Editar datos de usuario</a>
+      <a class="dropdown-item" routerLink="/auth/edit">Editar datos de usuario</a>
 
      <a class="dropdown-item" (click)="openFilePicker($event)">
         Cambiar foto de perfil

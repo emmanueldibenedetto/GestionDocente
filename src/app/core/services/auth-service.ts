@@ -60,6 +60,9 @@ export class AuthService {
 }
   // --- LOGOUT ---
   logout(): void {
+
+
+    
     localStorage.removeItem(this.SESSION_KEY);
     this.currentProfessor.set(null);
   }
@@ -74,4 +77,17 @@ export class AuthService {
       photoUrl: base64
     });
   }
+
+  updateProfessor(id: string, data: any) {
+    return this.http.put<Professor>(`${this.API_URL}/${id}`, data).pipe(
+      tap((updated: Professor) => {
+        // 1. Guardar en localStorage
+        localStorage.setItem(this.SESSION_KEY, JSON.stringify(updated));
+
+        // 2. Actualizar la signal global
+        this.currentProfessor.set(updated);
+      })
+    );
+  }
+
 }
