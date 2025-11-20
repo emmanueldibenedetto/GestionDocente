@@ -1,0 +1,104 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1e1e2f;
+  padding: 12px 24px;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+/* Izquierda */
+.user-section {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.profile-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  margin-right: 10px;
+  border: 2px solid white;
+}
+
+.username {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.arrow {
+  font-size: 12px;
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  background: white;
+  color: black;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  display: none;
+}
+
+.dropdown.open {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 8px 12px;
+  display: block;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.dropdown-item:hover {
+  background: #f0f0f0;
+}
+
+/* Derecha */
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  margin-left: 20px;
+  font-weight: 500;
+}
+
+.nav-links a:hover {
+  text-decoration: underline;
+}
+
+/* Mini formulario foto */
+.photo-form {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.photo-form input {
+  padding: 6px;
+  margin-bottom: 8px;
+}
+
+.photo-form button {
+  padding: 6px;
+  background: #333;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.photo-form button:hover {
+  background: #555;
+}
+
+.logout {
+  cursor: pointer;
+}
+

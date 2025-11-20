@@ -1,0 +1,17 @@
+<div class="courses-grid">
+
+  @for (c of courses(); track c.id) {
+    <div class="course-card" routerLink="/course/detail/{{c.id}}">
+
+      <h3 class="course-title">{{ c.name }}</h3>
+      <p class="course-school">{{ c.school }}</p>
+
+      <div class="course-actions">
+        <button class="btn-edit" (click)="editCourse(c.id!)">✏️ Editar</button>
+        <button class="btn-delete" (click)="deleteCourse(c.id!)">🗑 Eliminar</button>
+      </div>
+
+    </div>
+  }
+
+</div>

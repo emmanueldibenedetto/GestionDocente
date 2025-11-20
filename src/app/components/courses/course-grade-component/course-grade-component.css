@@ -1,0 +1,22 @@
+.grades-root { width: 100%; margin-top: 1rem; font-family: system-ui, Roboto, Arial; }
+
+.header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.eval-form { display:flex; gap:8px; align-items:center; }
+.eval-form input[type="text"] { padding:6px 8px; border-radius:6px; border:1px solid #ccc; width:220px; }
+.eval-form input[type="date"] { padding:6px 8px; border-radius:6px; border:1px solid #ccc; }
+.eval-form button { padding:6px 10px; border-radius:6px; border:none; background:#1976d2; color:white; cursor:pointer; }
+
+.table-wrap { overflow:auto; margin-top:12px; border:1px solid #e0e0e0; border-radius:8px; }
+table { border-collapse:collapse; width:100%; min-width:720px; }
+th, td { border:1px solid #e0e0e0; padding:8px; text-align:center; vertical-align:middle; }
+th.eval-header { position:relative; min-width:120px; }
+.sticky-col { position:sticky; left:0; background:#fafafa; text-align:left; padding-left:12px; min-width:220px; }
+.name-cell { font-weight:600; }
+
+.eval-title { font-weight:600; }
+.eval-date { font-size:0.8rem; color:#666; }
+.del-ev { position:absolute; top:6px; right:6px; background:transparent; border:none; cursor:pointer; }
+
+input[type="number"] { width:64px; padding:6px; border-radius:6px; border:1px solid #ccc; text-align:center; }
+.muted { color:#666; }
+.error { color:#c62828; font-weight:600; }

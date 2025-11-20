@@ -1,0 +1,45 @@
+<nav class="navbar">
+
+  <!-- Lado izquierdo -->
+  <div class="user-section" (click)="toggleMenu()">
+    
+    <img 
+      [src]="localImage() || userImage || 'assets/default-profile.png'"
+      class="profile-img"
+    />
+
+    <span class="username">
+      {{ userName || 'Usuario' }}
+    </span>
+
+    <span class="arrow">▾</span>
+
+    <!-- Menú desplegable -->
+    <div class="dropdown" [class.open]="menuOpen()">
+
+      <a class="dropdown-item" routerLink="/auth/edit">Editar datos de usuario</a>
+
+     <a class="dropdown-item" (click)="openFilePicker($event)">
+        Cambiar foto de perfil
+      </a>
+
+      <input 
+        type="file"
+        accept="image/*"
+        #fileInput
+        style="display:none"
+        (change)="onFileSelected($event)"
+      />
+
+
+    </div>
+  </div>
+
+  <!-- Lado derecho -->
+  <div class="nav-links">
+    <a routerLink="/course/list">Mis cursos</a>
+    <a routerLink="/course/create">Crear curso</a>
+    <a class="logout" (click)="logout()">Cerrar sesión</a>
+  </div>
+
+</nav>

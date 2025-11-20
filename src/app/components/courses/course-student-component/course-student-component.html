@@ -1,0 +1,25 @@
+
+<h3>Alumnos</h3>
+
+<form [formGroup]="form" (ngSubmit)="addStudent()">
+
+
+  <input type="text" placeholder="Nombre" formControlName="firstName" required>
+  <input type="text" placeholder="Apellido" formControlName="lastName">
+  <input type="text" placeholder="Celular" formControlName="cel">
+  <input type="email" placeholder="Email" formControlName="email">
+  <input type="text" placeholder="Documento" formControlName="document">
+
+  <button type="submit">Agregar Alumno</button>
+
+</form>
+
+<ul>
+  @for (s of students(); track s.id) {
+    <li>ID: {{s.id}}, {{ s.lastName }}, {{ s.firstName }}, Cel: {{s.cel}}, Email: {{s.email}}, DNI: {{s.document}}</li>
+  }
+</ul>
+
+@if(errorMessage()) {
+  <p style="color:red">{{ errorMessage() }}</p>
+}

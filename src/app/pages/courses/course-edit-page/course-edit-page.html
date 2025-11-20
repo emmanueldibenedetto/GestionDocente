@@ -1,0 +1,20 @@
+<div class="container">
+  <h2>Editar Curso</h2>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <label>Nombre del curso</label>
+    <input type="text" formControlName="name">
+
+    <label>Escuela</label>
+    <input type="text" formControlName="school">
+
+    <label>Descripción</label>
+    <textarea rows="3" formControlName="description"></textarea>
+
+    <button type="submit" [disabled]="form.invalid">Guardar Cambios</button>
+  </form>
+</div>

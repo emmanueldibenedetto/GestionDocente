@@ -1,0 +1,11 @@
+<h2>Curso {{course()?.name}} de la {{course()?.school}}</h2>
+
+ <app-course-students
+    [courseId]="courseId()"
+    (studentAdded)="onStudentAdded($event)">
+  </app-course-students>
+
+  <app-course-grades
+    [courseId]="courseId()"
+    #gradesComp>
+  </app-course-grades>
