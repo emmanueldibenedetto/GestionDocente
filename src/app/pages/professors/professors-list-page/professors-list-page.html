@@ -1,0 +1,138 @@
+<!-- src/app/components/professors-list/professors-list-page.html -->
+
+@if (currentUser()?.role !== 'admin') {
+  <div class="access-denied">
+    <div class="access-denied__card">
+      <span class="access-denied__icon">Prohibido</span>
+      <p class="access-denied__text">Solo los administradores pueden acceder a esta página</p>
+      <button routerLink="/course/list" class="btn btn--primary">Volver al inicio</button>
+    </div>
+  </div>
+}
+
+@else {
+  <section class="professors-container">
+
+    <header class="professors-header">
+      <h1 class="professors-header__title">Gestión de Profesores</h1>
+    </header>
+
+    @if (loading()) {
+      <div class="spinner-container">
+        <div class="spinner"></div>
+      </div>
+    }
+
+    @else if (error()) {
+      <div class="alert alert--error">{{ error() }}</div>
+    }
+
+    @else {
+
+      <!-- ======================= -->
+      <!--      PAGINACIÓN TOP     -->
+      <!-- ======================= -->
+      <div class="pagination">
+        <button class="pagination-btn"
+                (click)="prevPage()"
+                [disabled]="page() === 0">
+          ⬅ Anterior
+        </button>
+
+        <span class="pagination-info">
+          Página {{ page() + 1 }}
+        </span>
+
+        <button class="pagination-btn"
+                (click)="nextPage()"
+                [disabled]="(page() + 1) * pageSize >= professors().length">
+          Siguiente ➡
+        </button>
+      </div>
+
+      <!-- ======================= -->
+      <!--    GRID DE PROFESORES   -->
+      <!-- ======================= -->
+      <div class="professors-grid">
+        @for (prof of pagedProfessors(); track prof.id; let i = $index) {
+          <article class="professor-card">
+
+            <div class="professor-card__header">
+              @if (prof.photoUrl) {
+                <img [src]="prof.photoUrl"
+                     [alt]="prof.name + ' ' + prof.lastname"
+                     class="professor-card__avatar">
+              } @else {
+                <div class="professor-card__avatar-placeholder">
+                  {{ prof.name[0] }}{{ prof.lastname[0] }}
+                </div>
+              }
+
+              <div class="professor-card__info">
+                <h3 class="professor-card__name">
+                  {{ prof.name }} {{ prof.lastname }}
+                </h3>
+                <p class="professor-card__email">{{ prof.email }}</p>
+              </div>
+            </div>
+
+            <div class="professor-card__body">
+              <div class="professor-card__detail">
+                <strong>Rol:</strong>
+                <span class="badge"
+                      [class.badge--admin]="prof.role === 'admin'"
+                      [class.badge--professor]="prof.role === 'professor'">
+                  {{ prof.role === 'admin' ? 'Administrador' : 'Profesor' }}
+                </span>
+              </div>
+
+              <div class="professor-card__detail">
+                <strong>Registrado:</strong>
+                {{ prof.createdAt | date:'dd/MM/yyyy HH:mm' }}
+              </div>
+
+              @if (prof.lastLogin) {
+                <div class="professor-card__detail professor-card__detail--muted">
+                  <strong>Último acceso:</strong>
+                  {{ prof.lastLogin | date:'short' }}
+                </div>
+              }
+            </div>
+
+            <div class="professor-card__actions">
+              <button class="btn-edit" (click)="editProfessor(prof.id!)">✏️ Editar</button>
+              <button class="btn btn--danger" (click)="deleteProfessor(prof.id!)">Eliminar</button>
+            </div>
+
+          </article>
+        }
+
+        @empty {
+          <p class="empty-message">No hay profesores registrados todavía.</p>
+        }
+      </div>
+
+ 
+      <!-- Paginación -->
+      <div class="pagination pagination--bottom">
+        <button class="pagination-btn"
+                (click)="prevPage()"
+                [disabled]="page() === 0">
+          ⬅ Anterior
+        </button>
+
+        <span class="pagination-info">
+          Página {{ page() + 1 }}
+        </span>
+
+        <button class="pagination-btn"
+                (click)="nextPage()"
+                [disabled]="(page() + 1) * pageSize >= professors().length">
+          Siguiente ➡
+        </button>
+      </div>
+
+    }
+
+  </section>
+}

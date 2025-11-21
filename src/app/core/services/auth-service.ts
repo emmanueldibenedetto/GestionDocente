@@ -3,6 +3,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Professor } from '../models/professor';
 import { map, tap, Observable } from 'rxjs';
+import { Roles } from '../../enums/roles';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -78,16 +79,17 @@ export class AuthService {
     });
   }
 
-  updateProfessor(id: string, data: any) {
-    return this.http.put<Professor>(`${this.API_URL}/${id}`, data).pipe(
-      tap((updated: Professor) => {
-        // 1. Guardar en localStorage
-        localStorage.setItem(this.SESSION_KEY, JSON.stringify(updated));
-
-        // 2. Actualizar la signal global
+updateProfessor(id: number | string, data: Partial<Professor>): Observable<Professor> {
+  // PATCH → solo envía los campos que cambian (json-server lo ama)
+  
+  return this.http.patch<Professor>(`${this.API_URL}/${id}`, data).pipe(
+      tap((updated) => {
+        // Actualiza signal y localStorage
         this.currentProfessor.set(updated);
+        localStorage.setItem(this.SESSION_KEY, JSON.stringify(updated));
       })
     );
+    
   }
 
 }

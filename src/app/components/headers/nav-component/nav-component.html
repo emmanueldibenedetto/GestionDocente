@@ -9,7 +9,7 @@
     />
 
     <span class="username">
-      {{ userName || 'Usuario' }}
+      {{ userName || 'Usuario' }} ({{role}})
     </span>
 
     <span class="arrow">▾</span>
@@ -36,10 +36,19 @@
   </div>
 
   <!-- Lado derecho -->
-  <div class="nav-links">
-    <a routerLink="/course/list">Mis cursos</a>
-    <a routerLink="/course/create">Crear curso</a>
-    <a class="logout" (click)="logout()">Cerrar sesión</a>
-  </div>
+
+  <!-- Para role == professor -->
+      <div class="nav-links">
+        @if (role === 'professor') {
+          <a routerLink="/course/list">Mis cursos</a>
+          <a routerLink="/course/create">Crear curso</a>
+        } @else {
+          <!-- Para role === admin -->
+          <a class="createAdmin" routerLink="/professors/list">Ver profesores</a>
+          <a class="createAdmin" routerLink="/auth/register">Crear Administrador</a>
+        }
+
+        <a class="logout" (click)="logout()">Cerrar sesión</a>
+      </div>
 
 </nav>

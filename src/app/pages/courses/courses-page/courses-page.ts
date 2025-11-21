@@ -21,23 +21,19 @@ export class CoursesPage {
   errorMessage = signal('');
 
   constructor() {
+      // Se ejecuta cada vez que cambia currentProfessor
+      effect(() => {
+        const professor = this.authService.currentProfessor();
 
-    // Se ejecuta cada vez que cambia currentProfessor
-    effect(() => {
-      const professor = this.authService.currentProfessor(); // ✔ obtener valor
+        if (!professor || professor.id == null) {
+          this.errorMessage.set("No hay sesión activa.");
+          this.courses.set([]);
+          return;
+        }
 
-      console.log("Profesor actual:", professor?.name);
-      console.log("Profesor id:", professor?.id);
-
-      if (!professor) {
-        this.errorMessage.set("No hay sesión activa.");
-        this.courses.set([]); // Evita mostrar basura
-        return;
-      }
-
-      // Cargar cursos del profe logueado
-      this.loadCourses(professor.id!);
-    });
+        // Cargar cursos (solo necesita el ID)
+        this.loadCourses(professor.id);
+      });
   }
 
   loadCourses(professorId: number) {

@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { celularValidator } from '../../validators/cell-validator/cell-validator';
+import { ProfessorService } from '../../core/services/professor-service';
 
 @Component({
   selector: 'app-edit-professor-page',
@@ -18,8 +19,11 @@ export class EditProfessorPage
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private professorService = inject(ProfessorService);
 
   teacherId!: string | null ;
+
+  idParam!: string | null;
 
   loading = signal(false);
   message = signal('');
@@ -39,16 +43,43 @@ export class EditProfessorPage
   }
 
   loadTeacher() {
-    const profe = this.authService.currentProfessor();
-    console.log("Profesor a editar id : ", profe?.id);
-    console.log("Profesor a editar name : ", profe?.name);
-    this.form.patchValue({
-      name: profe?.name,
-      lastname: profe?.lastname,
-      email: profe?.email,
-      cel: profe?.cel
-    });
-    this.teacherId = profe?.id?.toString() ?? null;
+      const id = String(this.route.snapshot.paramMap.get('id'));
+      console.log("El id que me traigo es: ", id);
+      if(id !== "null"){ //si hay id en el url, es un admin queriendo editar datos de otro usuario.
+        console.log("hola, adminisrador");
+        this.idParam = id;
+        this.professorService.getById(id).subscribe({
+            next: (profe) => {
+              console.log("Profesor a editar id:", profe.id);
+              console.log("Profesor a editar name:", profe.name);
+
+              this.form.patchValue({
+                name: profe.name,
+                lastname: profe.lastname,
+                email: profe.email,
+                cel: profe.cel
+              });
+              this.teacherId = profe.id?.toString() ?? null;
+              },
+              error: (err) => {
+                console.error("Error cargando profesor:", err);
+              }
+          });
+    }else{ // si no hay id en la url, es que es el usuario el que quiere actualizar sus datos
+      console.log("hola");
+      const profe = this.authService.currentProfessor();
+      console.log("Tengo el id id : ", profe?.id);
+      console.log("cuyo profe tiene el  name : ", profe?.name);
+      this.form.patchValue({
+        name: profe?.name,
+        lastname: profe?.lastname,
+        email: profe?.email,
+        cel: profe?.cel
+      });
+      this.teacherId = profe?.id?.toString() ?? null;
+      
+    }
+  
   }
 
   passwordsDoNotMatch() {
@@ -80,18 +111,27 @@ export class EditProfessorPage
     if (this.form.value.password) {
       updatedData.password = this.form.value.password;
     }
-
-    this.authService.updateProfessor(this.teacherId, updatedData).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.message.set('Datos actualizados correctamente');
-        setTimeout(() => this.router.navigate(['course/list']), 1200);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.message.set('Error al actualizar');
-      }
-    });
+    if(this.idParam){
+      this.professorService.update(this.idParam, updatedData).subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.message.set("Datos actualizados xorrectamente");
+          setTimeout(() => this.router.navigate(['professors/list']), 1200);
+        }
+      })
+    }else{
+      this.authService.updateProfessor(this.teacherId, updatedData).subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.message.set('Datos actualizados correctamente');
+          setTimeout(() => this.router.navigate(['course/list']), 1200);
+        },
+        error: () => {
+          this.loading.set(false);
+          this.message.set('Error al actualizar');
+        }
+      });
+    }
   }
 
 }

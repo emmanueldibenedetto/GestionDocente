@@ -27,3 +27,5 @@ export class App
   }
 
 }
+
+//>json-server --watch db.json

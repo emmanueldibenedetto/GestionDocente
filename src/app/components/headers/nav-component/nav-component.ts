@@ -2,6 +2,7 @@ import { Component, ElementRef, inject, Input, signal, ViewChild } from '@angula
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth-service';
+import { Roles } from '../../../enums/roles';
 
 @Component({
   selector: 'app-nav-component',
@@ -14,6 +15,7 @@ export class NavComponent {
 
   @Input() userName!: string | null;        // <-- OK
   @Input() userImage!: string;       // <-- OK
+  @Input() role!: Roles | null;
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 

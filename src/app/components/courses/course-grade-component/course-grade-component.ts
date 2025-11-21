@@ -1,10 +1,9 @@
-import { Component, Input, inject, signal } from '@angular/core';
+import { Component, Input, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Student } from '../../../core/models/student';
 import { Evaluation } from '../../../core/models/evaluation';
 import { Grade } from '../../../core/models/grade';
-import { StudentService } from '../../../core/services/student-service';
 import { EvaluationService } from '../../../core/services/evaluation-service';
 import { GradeService } from '../../../core/services/grade-service';
 
@@ -17,14 +16,14 @@ import { GradeService } from '../../../core/services/grade-service';
 })
 
 export class CourseGradesComponent {
-  @Input({ required: true }) courseId!: string;
-
-  private studentService = inject(StudentService);
   private evaluationService = inject(EvaluationService);
   private gradeService = inject(GradeService);
   private fb = inject(FormBuilder);
 
-  students = signal<Student[]>([]);
+ // ← ¡ESTO ES LO QUE TE FALTABA!
+  courseId = input.required<string>();
+  students = input.required<Student[]>();  
+
   evaluations = signal<Evaluation[]>([]);
   grades = signal<Grade[]>([]);
   loading = signal(false);
@@ -47,19 +46,19 @@ export class CourseGradesComponent {
     this.error.set(null);
 
     // cargar estudiantes
-    this.studentService.getStudentsByCourse(this.courseId).subscribe({
-      next: s => this.students.set(s),
-      error: () => this.error.set('Error al cargar alumnos')
-    });
+    // this.studentService.getStudentsByCourse(this.courseId()).subscribe({
+    //   next: s => this.students.set(s),
+    //   error: () => this.error.set('Error al cargar alumnos')
+    // });
     console.log("aca tamos");
     // cargar evaluaciones
-    this.evaluationService.getEvaluationsByCourse(this.courseId).subscribe({
+    this.evaluationService.getEvaluationsByCourse(this.courseId()).subscribe({
       next: e => this.evaluations.set(e),
       error: () => this.error.set('Error al cargar evaluaciones')
     });
 
     // cargar notas
-    this.gradeService.getGradesByCourse(this.courseId).subscribe({
+    this.gradeService.getGradesByCourse(this.courseId()).subscribe({
       next: g => {
         this.grades.set(g);
         this.loading.set(false);
@@ -82,7 +81,7 @@ export class CourseGradesComponent {
     if (this.evalForm.invalid) return;
 
     const payload: Omit<Evaluation, 'id'> = {
-      courseId: this.courseId,
+      courseId: this.courseId(),
       nombre: this.evalForm.value.name!.trim(),
       date: this.evalForm.value.date || ''
     };
@@ -99,24 +98,22 @@ export class CourseGradesComponent {
 
   // actualizar o crear nota
   updateGrade(studentId: string, evaluationId: string, rawValue: string) {
-    // normalizar: vacío => null
     const parsed = rawValue === '' ? null : Number(rawValue);
     const value: number | null = parsed === null || Number.isNaN(parsed) ? null : parsed;
 
-    // buscar existente
-    const existing = this.grades().find(g => g.studentId === studentId && g.evaluationId === evaluationId);
+    const existing = this.grades().find(
+      g => g.studentId === studentId && g.evaluationId === evaluationId
+    );
 
-    // preparar objeto para enviar al backend (Grade)
     const gradePayload: Grade = existing
       ? { ...existing, grade: value }
       : {
           id: undefined,
-          courseId: this.courseId,
+          courseId: this.courseId(),     // ← con ()
           studentId,
           evaluationId,
           grade: value
         };
-
     // llamar al servicio (setGrade maneja POST vs PUT)
     this.gradeService.setGrade(gradePayload).subscribe({
       next: (saved: Grade) => {

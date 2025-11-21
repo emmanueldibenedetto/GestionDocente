@@ -1,0 +1,76 @@
+<div class="asistent-container">
+    <div class="header">
+    <h1>Control de Asistencias</h1>
+    <div class="actions">
+        <button class="btn-add" (click)="agregarFechaHoy()">
+            Agregar fecha de hoy ({{ hoyFormateado() }})
+        </button>
+        <button class="btn-export" (click)="exportarExcel()">
+            Exportar Excel
+        </button>
+    </div>
+    </div>
+
+  <div class="table-wrapper">
+    <table class="asistencia-table">
+      <thead>
+        <tr>
+          <th class="fixed">Alumno</th>
+
+          @for (fecha of fechas(); track fecha) {
+            <th class="date-col">
+              <div>{{ formatearFecha(fecha) }}</div>
+              <small>{{ fecha }}</small>
+
+              <div class="actions">
+                <button class="mini success" (click)="marcarTodosFecha(fecha, true)">
+                  Todos presentes
+                </button>
+                <button class="mini danger" (click)="marcarTodosFecha(fecha, false)">
+                  Todos ausentes
+                </button>
+              </div>
+
+              <div class="counter">
+                {{ totalPresentesPorFecha().get(fecha) ?? 0 }} / {{ students().length }}
+              </div>
+            </th>
+          } @empty {
+            <th class="no-dates">Sin fechas registradas</th>
+          }
+
+          <th class="total-col">Asistencia</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (student of students(); track student.id) {
+          <tr>
+            <td class="fixed">{{ student.firstName }}</td>
+
+            @for (fecha of fechas(); track fecha) {
+              <td class="cell">
+                <input
+                  type="checkbox"
+                  [checked]="presenteMap().get(fecha)?.get(student.id) ?? false"
+                  (change)="toggleAsistencia(student.id, fecha, $event.target.checked)"
+                />
+              </td>
+            }
+
+            <td class="total-col">
+              <strong>{{ porcentajePorAlumno().get(student.id) ?? 0 }}%</strong>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (fechas().length === 0) {
+    <div class="empty">
+      <p>No hay asistencias registradas aún.</p>
+      <p>Presiona el botón de arriba para comenzar con la fecha de hoy</p>
+    </div>
+  }
+</div>

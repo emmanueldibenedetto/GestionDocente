@@ -1,25 +1,22 @@
-import { Component, EventEmitter, inject, Input, OnInit, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, input, Input, OnInit, Output, signal } from '@angular/core';
 import { StudentService } from '../../../core/services/student-service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Student, StudentCreate } from '../../../core/models/student';
-import { Course } from '../../../core/models/course';
-import { CourseService } from '../../../core/services/course-service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-course-students',
-  imports: [ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './course-student-component.html',
   styleUrl: './course-student-component.css',
 })
 export class CourseStudentComponent implements OnInit
 {
-  @Input() courseId!: string;
-
+  courseId = input.required<string>(); //Me lo traigo de CourseDetail.
   @Output() studentAdded = new EventEmitter<Student>();
 
   private studentService = inject(StudentService);
   private fb = inject(FormBuilder);
-  private courseService = inject(CourseService);
 
   students = signal<Student[]>([]);
   errorMessage = signal<string | null>(null);
@@ -37,7 +34,7 @@ export class CourseStudentComponent implements OnInit
   }
 
   loadStudents() {
-    this.studentService.getStudentsByCourse(this.courseId).subscribe({
+    this.studentService.getStudentsByCourse(this.courseId()).subscribe({
       next: s => this.students.set(s),
       error: () => this.errorMessage.set('Error al cargar alumnos')
     });
@@ -48,7 +45,7 @@ export class CourseStudentComponent implements OnInit
 
     const newStudent: StudentCreate = {
       ...this.form.getRawValue(),
-      courseId: this.courseId
+      courseId: this.courseId()
     };
 
     this.studentService.addStudentToCourse(newStudent).subscribe({
