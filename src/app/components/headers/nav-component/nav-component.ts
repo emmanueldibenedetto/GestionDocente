@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, Input, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, Input, signal, ViewChild, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth-service';
@@ -13,8 +13,8 @@ import { Roles } from '../../../enums/roles';
 })
 export class NavComponent {
 
-  @Input() userName!: string | null;        // <-- OK
-  @Input() userImage!: string;       // <-- OK
+  @Input() userName!: string | null;
+  @Input() userImage!: string;
   @Input() role!: Roles | null;
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
@@ -24,12 +24,26 @@ export class NavComponent {
 
   menuOpen = signal(false);
 
-  // ESTA señal es solo para actualizar la imagen localmente
+  Roles = Roles;
+
+  // Imagen local
   localImage = signal<string | null>(null);
 
+  // 🔥 NUEVO: signal para texto de búsqueda (solo admin)
+  searchTerm = signal('');
+
+  // 🔥 NUEVO: output hacia componente padre para filtrar
+  onSearch = output<string>();
+
   ngOnChanges() {
-    // cuando cambien los @Input, actualizamos localImage
     this.localImage.set(this.userImage);
+  }
+
+  // 🔥 NUEVO: emite en vivo mientras el admin escribe
+  handleSearch(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchTerm.set(value);
+    this.onSearch.emit(value);
   }
 
   openFilePicker(event: Event) {
@@ -47,7 +61,7 @@ export class NavComponent {
     reader.onload = () => {
       const base64 = reader.result as string;
 
-      this.localImage.set(base64);  // actualizar imagen local
+      this.localImage.set(base64);
 
       const prof = this.authService.currentProfessor();
       if (!prof) return;

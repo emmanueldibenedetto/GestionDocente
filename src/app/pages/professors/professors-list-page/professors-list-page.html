@@ -11,6 +11,7 @@
 }
 
 @else {
+
   <section class="professors-container">
 
     <header class="professors-header">
@@ -18,9 +19,7 @@
     </header>
 
     @if (loading()) {
-      <div class="spinner-container">
-        <div class="spinner"></div>
-      </div>
+      <div class="spinner-container"><div class="spinner"></div></div>
     }
 
     @else if (error()) {
@@ -45,7 +44,7 @@
 
         <button class="pagination-btn"
                 (click)="nextPage()"
-                [disabled]="(page() + 1) * pageSize >= professors().length">
+                [disabled]="(page() + 1) * pageSize >= filteredProfessors().length">
           Siguiente ➡
         </button>
       </div>
@@ -53,11 +52,15 @@
       <!-- ======================= -->
       <!--    GRID DE PROFESORES   -->
       <!-- ======================= -->
+
       <div class="professors-grid">
+
         @for (prof of pagedProfessors(); track prof.id; let i = $index) {
+
           <article class="professor-card">
 
             <div class="professor-card__header">
+
               @if (prof.photoUrl) {
                 <img [src]="prof.photoUrl"
                      [alt]="prof.name + ' ' + prof.lastname"
@@ -74,6 +77,7 @@
                 </h3>
                 <p class="professor-card__email">{{ prof.email }}</p>
               </div>
+
             </div>
 
             <div class="professor-card__body">
@@ -105,16 +109,21 @@
             </div>
 
           </article>
+
         }
 
         @empty {
-          <p class="empty-message">No hay profesores registrados todavía.</p>
+          <p class="empty-message">No se encontraron profesores con ese apellido.</p>
         }
+
       </div>
 
- 
-      <!-- Paginación -->
+      <!-- ======================= -->
+      <!--    PAGINACIÓN BOTTOM    -->
+      <!-- ======================= -->
+
       <div class="pagination pagination--bottom">
+
         <button class="pagination-btn"
                 (click)="prevPage()"
                 [disabled]="page() === 0">
@@ -127,9 +136,10 @@
 
         <button class="pagination-btn"
                 (click)="nextPage()"
-                [disabled]="(page() + 1) * pageSize >= professors().length">
+                [disabled]="(page() + 1) * pageSize >= filteredProfessors().length">
           Siguiente ➡
         </button>
+
       </div>
 
     }

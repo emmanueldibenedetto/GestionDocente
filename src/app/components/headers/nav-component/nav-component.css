@@ -102,3 +102,16 @@
   cursor: pointer;
 }
 
+.search-bar {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-right: 15px;
+  width: 180px;
+}
+
+.search-bar:focus {
+  outline: none;
+  border-color: #007bff;
+}

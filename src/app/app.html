@@ -3,7 +3,8 @@
     <app-nav-component
       [userName]="currentUser()?.name ?? null"
       [userImage]="currentUser()?.photoUrl ?? 'assets/default-profile.png'"
-      [role]="currentUser()?.role ?? null">
+      [role]="currentUser()?.role ?? null"
+      (onSearch)="filterProfessors($event)">
     </app-nav-component>
   }
 </header>
@@ -14,3 +15,8 @@
 <footer>
   <app-footer-component></app-footer-component>
 </footer>
+    <!-- NAVBAR
+    <app-nav-component
+      [role]="Roles.Admin"
+      (onSearch)="filterProfessors($event)"
+    /> -->

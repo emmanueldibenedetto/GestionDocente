@@ -1,16 +1,17 @@
-// professors-list.component.ts
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe, AsyncPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { ProfessorService } from '../../../core/services/professor-service';
 import { AuthService } from '../../../core/services/auth-service';
 import { Professor } from '../../../core/models/professor';
+import { NavComponent } from '../../../components/headers/nav-component/nav-component';
+import { Roles } from '../../../enums/roles';
+import { SearchService } from '../../../core/services/search-service';
 
 @Component({
   selector: 'app-professors-list',
   standalone: true,
-  imports: [DatePipe, AsyncPipe, RouterLink],
+  imports: [DatePipe, AsyncPipe, RouterLink, NavComponent],
   templateUrl: './professors-list-page.html',
   styleUrl: './professors-list-page.css'
 })
@@ -21,18 +22,37 @@ export class ProfessorsListPage implements OnInit {
 
   currentUser = this.auth.currentProfessor;
 
+  Roles = Roles;  // <-- necesario para usar el enum en el HTML
+  // Lista completa
   professors = signal<Professor[]>([]);
+
+  // Nuevo: término de búsqueda
+  private search = inject(SearchService);
+
+  // Nuevo: lista filtrada automáticamente
+ filteredProfessors = computed(() => {
+    const term = this.search.term().toLowerCase();
+    const all = this.professors();
+
+    if (!term) return all;
+    return all.filter(p =>
+      p.lastname.toLowerCase().includes(term) ||
+      p.name.toLowerCase().includes(term)
+    );
+  });
+
+  
+    pagedProfessors = computed(() => {
+      const start = this.page() * this.pageSize;
+      const end = start + this.pageSize;
+      return this.filteredProfessors().slice(start, end);
+    });
+
   loading = signal(true);
   error = signal<string | null>(null);
 
   page = signal(0);
   pageSize = 20;
-
-  pagedProfessors = computed(() => {
-    const start = this.page() * this.pageSize;
-    const end = start + this.pageSize;
-    return this.professors().slice(start, end);
-  });
 
   ngOnInit(): void {
     if (this.currentUser()?.role === 'admin') {
@@ -79,9 +99,8 @@ export class ProfessorsListPage implements OnInit {
     });
   }
 
-
   nextPage() {
-    const total = this.professors().length;
+    const total = this.filteredProfessors().length;
     const maxPage = Math.floor(total / this.pageSize);
 
     if (this.page() < maxPage) {
@@ -94,4 +113,5 @@ export class ProfessorsListPage implements OnInit {
       this.page.update(p => p - 1);
     }
   }
+
 }

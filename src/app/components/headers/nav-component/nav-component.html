@@ -2,14 +2,14 @@
 
   <!-- Lado izquierdo -->
   <div class="user-section" (click)="toggleMenu()">
-    
-    <img 
+
+    <img
       [src]="localImage() || userImage || 'assets/default-profile.png'"
       class="profile-img"
     />
 
     <span class="username">
-      {{ userName || 'Usuario' }} ({{role}})
+      {{ userName || 'Usuario' }} ({{ role }})
     </span>
 
     <span class="arrow">▾</span>
@@ -17,13 +17,15 @@
     <!-- Menú desplegable -->
     <div class="dropdown" [class.open]="menuOpen()">
 
-      <a class="dropdown-item" routerLink="/auth/edit">Editar datos de usuario</a>
+      <a class="dropdown-item" routerLink="/auth/edit">
+        Editar datos de usuario
+      </a>
 
-     <a class="dropdown-item" (click)="openFilePicker($event)">
+      <a class="dropdown-item" (click)="openFilePicker($event)">
         Cambiar foto de perfil
       </a>
 
-      <input 
+      <input
         type="file"
         accept="image/*"
         #fileInput
@@ -31,24 +33,43 @@
         (change)="onFileSelected($event)"
       />
 
-
     </div>
   </div>
 
   <!-- Lado derecho -->
+  <div class="nav-links">
 
-  <!-- Para role == professor -->
-      <div class="nav-links">
-        @if (role === 'professor') {
-          <a routerLink="/course/list">Mis cursos</a>
-          <a routerLink="/course/create">Crear curso</a>
-        } @else {
-          <!-- Para role === admin -->
-          <a class="createAdmin" routerLink="/professors/list">Ver profesores</a>
-          <a class="createAdmin" routerLink="/auth/register">Crear Administrador</a>
-        }
+    <!-- PROFESOR -->
+    @if (role === Roles.Professor) {
+      <a routerLink="/course/list">Mis cursos</a>
+      <a routerLink="/course/create">Crear curso</a>
+    }
 
-        <a class="logout" (click)="logout()">Cerrar sesión</a>
-      </div>
+    <!-- ADMIN -->
+    @if (role === Roles.Admin) {
+
+      <!-- ⭐ BARRA DE BÚSQUEDA PARA FILTRAR PROFESORES -->
+      <input
+        type="text"
+        class="search-bar"
+        placeholder="Buscar profesor por apellido..."
+        [value]="searchTerm()"
+        (input)="handleSearch($event)"
+      />
+
+      <a class="createAdmin" routerLink="/professors/list">
+        Ver profesores
+      </a>
+
+      <a class="createAdmin" routerLink="/auth/register">
+        Crear Administrador
+      </a>
+    }
+
+    <a class="logout" (click)="logout()">
+      Cerrar sesión
+    </a>
+
+  </div>
 
 </nav>
