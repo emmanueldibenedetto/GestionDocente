@@ -23,6 +23,8 @@ export class CourseEditPage implements OnInit
   private authService = inject(AuthService);
 
   errorMessage = signal<string>('');
+  successMessage = signal<string>('');
+  submitted = signal(false);
   course!: Course;
 
  form = this.fb.nonNullable.group({
@@ -85,6 +87,10 @@ loadCourse(id: number) {
 
   onSubmit() 
   {
+    this.submitted.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
     if (this.form.invalid || !this.course) {
       this.errorMessage.set('Por favor completa todos los campos obligatorios.');
       return;
@@ -105,8 +111,12 @@ loadCourse(id: number) {
     this.courseService.updateCourse(updated).subscribe({
       next: (saved) => {
         console.log('✅ Curso guardado exitosamente:', saved);
-        alert('Curso actualizado correctamente');
-        this.router.navigate(['/course/list']);
+        this.successMessage.set('Curso actualizado correctamente');
+        this.errorMessage.set('');
+        // Limpiar mensaje de éxito después de 3 segundos y navegar
+        setTimeout(() => {
+          this.router.navigate(['/course/list']);
+        }, 1500);
       },
       error: (err) => {
         console.error('❌ Error al guardar curso:', err);
@@ -114,6 +124,12 @@ loadCourse(id: number) {
         
         if (err.error?.error) {
           errorMsg = err.error.error;
+        } else if (err.error?.mensaje) {
+          errorMsg = err.error.mensaje;
+        } else if (err.error?.campos) {
+          // Si hay errores de validación por campo, mostrarlos
+          const campos = Object.values(err.error.campos).join(', ');
+          errorMsg = `Error de validación: ${campos}`;
         } else if (err.status === 401) {
           errorMsg = 'No estás autenticado. Por favor inicia sesión nuevamente.';
         } else if (err.status === 403) {
@@ -125,7 +141,7 @@ loadCourse(id: number) {
         }
         
         this.errorMessage.set(errorMsg);
-        alert(errorMsg);
+        this.successMessage.set('');
       }
     });
   }

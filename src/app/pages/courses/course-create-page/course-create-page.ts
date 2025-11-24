@@ -16,6 +16,8 @@ import { Router } from '@angular/router';
 export class CourseCreatePage {
 
   public errorMessage = signal<string>('');
+  public successMessage = signal<string>('');
+  public submitted = signal(false);
 
   private fb = inject(FormBuilder);
   private courseService = inject(CourseService);
@@ -23,14 +25,20 @@ export class CourseCreatePage {
   private router = inject(Router);
 
  form = this.fb.nonNullable.group({
-  name: [''],
-  school: [''],
+  name: ['', [Validators.required]],
+  school: ['', [Validators.required]],
   description: ['']
 });
 
 onSubmit() {
+  this.submitted.set(true);
+  this.errorMessage.set('');
+  this.successMessage.set('');
 
-  if (this.form.invalid) return;
+  if (this.form.invalid) {
+    this.errorMessage.set('Por favor completa todos los campos obligatorios.');
+    return;
+  }
 
   const professor = this.authService.getLoggedProfessor();
   if (!professor) {
@@ -57,8 +65,12 @@ onSubmit() {
 
   this.courseService.createCourse(newCourse).subscribe({
     next: () => {
-      alert('Curso creado');
-      this.router.navigate(['/course/list']);
+      this.successMessage.set('Curso creado exitosamente');
+      this.errorMessage.set('');
+      // Limpiar mensaje de éxito después de 3 segundos y navegar
+      setTimeout(() => {
+        this.router.navigate(['/course/list']);
+      }, 1500);
     },
     error: (err) => {
       console.error('Error al crear curso:', err);
@@ -67,6 +79,12 @@ onSubmit() {
       // Mostrar detalles del error si están disponibles
       if (err.error?.error) {
         errorMsg = err.error.error;
+      } else if (err.error?.mensaje) {
+        errorMsg = err.error.mensaje;
+      } else if (err.error?.campos) {
+        // Si hay errores de validación por campo, mostrarlos
+        const campos = Object.values(err.error.campos).join(', ');
+        errorMsg = `Error de validación: ${campos}`;
       } else if (err.message) {
         errorMsg = err.message;
       } else if (err.status === 401) {
@@ -78,7 +96,7 @@ onSubmit() {
       }
       
       this.errorMessage.set(errorMsg);
-      alert(errorMsg);
+      this.successMessage.set('');
     }
   });
 }

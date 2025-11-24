@@ -4,9 +4,21 @@
     <h3>Planilla de notas</h3>
 
     <form [formGroup]="evalForm" (ngSubmit)="addEvaluation()" class="eval-form">
-      <input type="text" placeholder="Nombre evaluación (ej. Parcial 1)" formControlName="name" />
-      <input type="date" formControlName="date" />
-      <button type="submit" [disabled]="evalForm.invalid">Agregar evaluación</button>
+      <div class="eval-form-fields">
+        <input 
+          type="text" 
+          placeholder="Nombre evaluación (ej. Parcial 1)" 
+          formControlName="name"
+          [class.invalid]="evalForm.controls['name'].invalid && evalForm.controls['name'].touched" />
+        <input 
+          type="date" 
+          formControlName="date"
+          [class.invalid]="evalForm.controls['date'].invalid && evalForm.controls['date'].touched" />
+        <button type="submit" [disabled]="evalForm.invalid">Agregar evaluación</button>
+      </div>
+      @if (evalForm.controls['name'].invalid && evalForm.controls['name'].touched) {
+        <small class="field-error">El nombre de la evaluación es obligatorio</small>
+      }
     </form>
   </div>
 
@@ -47,10 +59,13 @@
                 <input
                   type="number"
                   min="0"
-                  max="100"
+                  max="10"
+                  step="0.1"
                   [value]="getGrade(st.id!, ev.id!)"
                   (blur)="updateGrade(st.id!, ev.id!, $any($event.target).value)"
                   (keydown.enter)="$event.preventDefault(); updateGrade(st.id!, ev.id!, $any($event.target).value)"
+                  (input)="error.set(null)"
+                  class="grade-input"
                 />
               </td>
             }

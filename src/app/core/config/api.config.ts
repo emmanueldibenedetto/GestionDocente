@@ -11,7 +11,8 @@ export const API_CONFIG = {
   },
   PROFESSORS: {
     BASE: '/professors',
-    EMAIL_EXISTS: '/professors/email-exists'
+    EMAIL_EXISTS: '/professors/email-exists',
+    SEARCH: '/professors/search'
   },
   COURSES: {
     BASE: '/courses',
@@ -31,6 +32,15 @@ export const API_CONFIG = {
     BY_EVALUATION: '/grades/evaluation',
     AVERAGES: '/grades/course',
     STUDENT_AVERAGE: '/grades/student'
+  },
+  ATTENDANCES: {
+    BASE: '/attendances',
+    BY_COURSE: '/attendances/course',
+    BY_STUDENT: '/attendances/student',
+    PERCENTAGE: '/attendances/student'
+  },
+  CLASSES: {
+    BASE: '/classes'
   }
 } as const;
 

@@ -35,8 +35,32 @@ h2 {
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .register-link a:hover {
+  color: #1565c0;
   text-decoration: underline;
+}
+
+/* Media Queries - Responsive */
+@media (max-width: 767px) {
+  .login-container {
+    width: 100%;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .login-container {
+    width: 400px;
+    margin: 40px auto;
+  }
 }

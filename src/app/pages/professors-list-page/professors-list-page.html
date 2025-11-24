@@ -1,0 +1,71 @@
+<div class="professors-list-container">
+  <h2>Lista de Profesores</h2>
+
+  <div class="search-section">
+    <form [formGroup]="searchForm" (ngSubmit)="searchByLastname()">
+      <input
+        type="text"
+        formControlName="lastname"
+        placeholder="Buscar por apellido..."
+        class="search-input"
+      />
+      <button type="submit" class="search-button">Buscar</button>
+      <button type="button" (click)="loadProfessors()" class="clear-button">
+        Limpiar
+      </button>
+    </form>
+  </div>
+
+  @if (error()) {
+    <div class="error-message">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="professors-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Apellido</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (professor of professors(); track professor.id) {
+          <tr>
+            <td>{{ professor.name }}</td>
+            <td>{{ professor.lastname }}</td>
+            <td>{{ professor.email }}</td>
+            <td>{{ professor.cel || '-' }}</td>
+            <td>
+              <button
+                type="button"
+                (click)="editProfessor(professor)"
+                class="edit-button"
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                (click)="deleteProfessor(professor.id!)"
+                class="delete-button"
+              >
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty-message">
+              No se encontraron profesores
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+

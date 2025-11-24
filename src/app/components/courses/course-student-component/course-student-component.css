@@ -1,0 +1,304 @@
+/* Formulario */
+.student-form {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.form-field-inline {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-row input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.form-row input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.form-row input.invalid {
+  border-color: #c62828;
+}
+
+.field-error {
+  color: #c62828;
+  font-size: 11px;
+  margin-top: -2px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.form-actions button {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+}
+
+.form-actions button:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+}
+
+.form-actions button:active {
+  transform: translateY(0);
+}
+
+.form-actions button[type="button"] {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  box-shadow: 0 2px 6px rgba(108, 117, 125, 0.3);
+}
+
+.form-actions button[type="button"]:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  box-shadow: 0 4px 10px rgba(108, 117, 125, 0.4);
+}
+
+/* Tabla de estudiantes */
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  border: 1px solid #e0e0e0;
+}
+
+.students-table thead {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.students-table th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #dee2e6;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+}
+
+.students-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  transition: background-color 0.15s ease;
+}
+
+.student-row:hover {
+  background: #f8f9fa;
+  cursor: default;
+}
+
+.student-row:last-child td {
+  border-bottom: none;
+}
+
+.average-cell {
+  text-align: center;
+  font-weight: 600;
+}
+
+.average-value {
+  color: #2e7d32;
+  font-size: 15px;
+}
+
+.average-loading {
+  color: #999;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-edit-student,
+.btn-delete-student,
+.btn-average-student {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.btn-edit-student {
+  background: #e7f1ff;
+  color: #1b64d8;
+}
+
+.btn-edit-student:hover {
+  background: #d2e4ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(27, 100, 216, 0.2);
+}
+
+.btn-edit-student:active {
+  transform: translateY(0);
+}
+
+.btn-delete-student {
+  background: #ffe6e6;
+  color: #c62828;
+}
+
+.btn-delete-student:hover {
+  background: #ffd1d1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(198, 40, 40, 0.2);
+}
+
+.btn-delete-student:active {
+  transform: translateY(0);
+}
+
+
+/* Mensajes */
+.error-message {
+  color: #c62828;
+  background: #ffebee;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+/* Media Queries - Responsive */
+@media (max-width: 767px) {
+  .student-form {
+    padding: 12px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-field-inline {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+
+  /* Tabla convertida a cards en móvil */
+  .students-table {
+    display: block;
+    border: none;
+    box-shadow: none;
+  }
+
+  .students-table thead {
+    display: none;
+  }
+
+  .students-table tbody {
+    display: block;
+  }
+
+  .student-row {
+    display: block;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .students-table td {
+    display: block;
+    padding: 8px 0;
+    border: none;
+    text-align: left;
+  }
+
+  .students-table td:before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+    color: #666;
+    display: inline-block;
+    min-width: 100px;
+  }
+
+  .actions-cell {
+    flex-direction: row;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .btn-edit-student,
+  .btn-delete-student {
+    flex: 1;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .average-cell {
+    text-align: left;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .form-row {
+    gap: 8px;
+  }
+
+  .form-field-inline {
+    min-width: 140px;
+  }
+
+  .students-table th,
+  .students-table td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+}
+
+

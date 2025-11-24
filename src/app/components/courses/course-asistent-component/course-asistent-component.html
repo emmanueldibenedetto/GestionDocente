@@ -1,0 +1,87 @@
+<div class="attendance-container">
+  <h3>Asistencias del Curso</h3>
+
+  <div class="date-selector">
+    <label for="attendance-date">Fecha:</label>
+    <input
+      type="date"
+      id="attendance-date"
+      [formControl]="attendanceForm.controls.date"
+      (change)="onDateChange(attendanceForm.controls.date.value)"
+    />
+  </div>
+
+  @if (error()) {
+    <div class="error-message">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div>Cargando...</div>
+  }
+
+  <table class="attendance-table">
+    <thead>
+      <tr>
+        <th>Estudiante</th>
+        <th>Presente</th>
+        <th>Ausente</th>
+        <th>% Asistencia</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (student of students(); track student.id) {
+        <tr>
+          <td data-label="Estudiante">{{ student.firstName }} {{ student.lastName }}</td>
+          <td data-label="Presente">
+            <button
+              type="button"
+              [class.active]="isPresent(student.id!)"
+              (click)="toggleAttendance(student.id!, true)"
+            >
+              ✓
+            </button>
+          </td>
+          <td data-label="Ausente">
+            <button
+              type="button"
+              [class.active]="!isPresent(student.id!)"
+              (click)="toggleAttendance(student.id!, false)"
+            >
+              ✗
+            </button>
+          </td>
+          <td class="percentage-cell" data-label="% Asistencia">
+            @if (attendancePercentages().has(student.id!)) {
+              <span class="percentage-value">{{ getAttendancePercentage(student.id!) | number:'1.2-2' }}%</span>
+            } @else {
+              <span class="percentage-loading">Calculando...</span>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <div class="attendance-actions">
+    <button 
+      type="button" 
+      class="btn-save-attendances"
+      (click)="saveAllAttendances()"
+      [disabled]="loading()">
+      @if (loading()) {
+        Guardando...
+      } @else {
+        💾 Guardar Asistencias
+      }
+    </button>
+    @if (pendingAttendances().size > 0) {
+      <p class="info-text">
+        Tienes {{ pendingAttendances().size }} cambio(s) pendiente(s). Haz clic en "Guardar Asistencias" para aplicar los cambios.
+      </p>
+    }
+    <p class="help-text">
+      Selecciona presente o ausente para cada alumno y luego haz clic en "Guardar Asistencias" para guardar todas las asistencias del día.
+    </p>
+  </div>
+</div>
+

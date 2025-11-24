@@ -1,10 +1,116 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background: #f5f5f5;
+}
 
+main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
+}
 
-footer{
-    display: flex;
-    flex-direction: row;
-    
-    justify-content: center;
+footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  border-top: 1px solid #e0e0e0;
+  background: #ffffff;
+  padding: 20px;
+  margin-top: 40px;
+}
 
-    border: 5px, solid, black;
+/* Mejoras globales para mensajes de error */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c62828;
+  background: #ffebee;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin: 12px 0;
+  font-size: 14px;
+  border-left: 4px solid #c62828;
+  box-shadow: 0 2px 4px rgba(198, 40, 40, 0.1);
+}
+
+.error-message::before {
+  content: "⚠️";
+  font-size: 18px;
+}
+
+/* Mejoras globales para mensajes de éxito */
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin: 12px 0;
+  font-size: 14px;
+  border-left: 4px solid #2e7d32;
+  box-shadow: 0 2px 4px rgba(46, 125, 50, 0.1);
+}
+
+.success-message::before {
+  content: "✓";
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Media Queries - Responsive Global */
+@media (max-width: 767px) {
+  main {
+    padding: 0;
+  }
+
+  footer {
+    padding: 15px;
+    font-size: 13px;
+  }
+
+  .error-message {
+    padding: 10px;
+    font-size: 13px;
+    margin: 10px 0;
+  }
+
+  .success-message {
+    padding: 10px;
+    font-size: 13px;
+    margin: 10px 0;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  main {
+    padding: 0;
+  }
 }

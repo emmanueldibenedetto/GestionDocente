@@ -71,6 +71,8 @@ export class CoursesPage {
           this.loadCourses(professor.id);
         }
         this.errorMessage.set('');
+        // Asegurar que permanecemos en la página de cursos (no redirigir)
+        this.router.navigate(['/course/list']);
       },
       error: (err) => {
         console.error('❌ Error al eliminar curso:', err);
@@ -89,7 +91,6 @@ export class CoursesPage {
         }
         
         this.errorMessage.set(errorMsg);
-        alert(errorMsg);
       }
     });
   }

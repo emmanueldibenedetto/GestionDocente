@@ -18,12 +18,16 @@
   gap: 10px;
 
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
 }
 
 .course-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+}
+
+.course-content {
+  cursor: pointer;
+  flex: 1;
 }
 
 /* ===== TITULO / ESCUELA ===== */
@@ -50,11 +54,13 @@
 .btn-edit,
 .btn-delete {
   border: none;
-  padding: 6px 10px;
+  padding: 8px 14px;
   font-size: 0.85rem;
+  font-weight: 500;
   border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .btn-edit {
@@ -64,6 +70,12 @@
 
 .btn-edit:hover {
   background: #d2e4ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(27, 100, 216, 0.2);
+}
+
+.btn-edit:active {
+  transform: translateY(0);
 }
 
 .btn-delete {
@@ -73,6 +85,12 @@
 
 .btn-delete:hover {
   background: #ffd1d1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(198, 40, 40, 0.2);
+}
+
+.btn-delete:active {
+  transform: translateY(0);
 }
 
 /* ===== LINK ===== */
@@ -86,4 +104,61 @@
 
 .card-link:hover {
   text-decoration: underline;
+}
+
+/* ===== MENSAJES DE ERROR ESTANDARIZADOS ===== */
+.error-message {
+  color: #c62828;
+  background: #ffebee;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border-left: 4px solid #c62828;
+}
+
+/* Media Queries - Responsive */
+@media (max-width: 767px) {
+  .courses-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .course-card {
+    padding: 15px;
+    border-radius: 12px;
+  }
+
+  .course-title {
+    font-size: 1.1rem;
+  }
+
+  .course-school {
+    font-size: 0.85rem;
+  }
+
+  .course-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-edit,
+  .btn-delete {
+    width: 100%;
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .error-message {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .courses-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
 }

@@ -1,3 +1,5 @@
+import { Role } from '../../enums/roles';
+
 export interface Professor
 {
     id?: number;
@@ -7,5 +9,6 @@ export interface Professor
     password?: string;
     cel: string;
     photoUrl?: string;
+    role?: Role;
 }
   

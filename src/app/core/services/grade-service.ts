@@ -30,8 +30,8 @@ export class GradeService {
     return this.http.get<any[]>(`${this.BASE_URL}${API_CONFIG.GRADES.AVERAGES}/${courseId}/averages`);
   }
 
-  getStudentAverage(studentId: number, courseId: number): Observable<{ average: number | null }> {
-    return this.http.get<{ average: number | null }>(
+  getStudentAverage(studentId: number, courseId: number): Observable<{ average: number | null; studentId: number; courseId: number; message?: string }> {
+    return this.http.get<{ average: number | null; studentId: number; courseId: number; message?: string }>(
       `${this.BASE_URL}${API_CONFIG.GRADES.STUDENT_AVERAGE}/${studentId}/course/${courseId}/average`
     );
   }

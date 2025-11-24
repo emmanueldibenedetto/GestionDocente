@@ -1,9 +1,10 @@
 import { Component, EventEmitter, inject, Input, OnInit, Output, signal } from '@angular/core';
 import { StudentService } from '../../../core/services/student-service';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Student, StudentCreate } from '../../../core/models/student';
 import { Course } from '../../../core/models/course';
 import { CourseService } from '../../../core/services/course-service';
+import { GradeService } from '../../../core/services/grade-service';
 
 @Component({
   selector: 'app-course-students',
@@ -16,21 +17,36 @@ export class CourseStudentComponent implements OnInit
   @Input() courseId!: number;
 
   @Output() studentAdded = new EventEmitter<Student>();
+  @Output() studentRemoved = new EventEmitter<number>();
+  @Output() studentUpdated = new EventEmitter<Student>();
 
   private studentService = inject(StudentService);
   private fb = inject(FormBuilder);
   private courseService = inject(CourseService);
+  private gradeService = inject(GradeService);
 
   students = signal<Student[]>([]);
   errorMessage = signal<string | null>(null);
+  editingStudent = signal<Student | null>(null);
+  studentAverages = signal<Map<number, number>>(new Map());
+  submitted = signal(false);
 
   form = this.fb.nonNullable.group({
     firstName: ['', Validators.required],
     lastName: [''],
-    cel: [''],
-    email: [''],
-    document: [''],
+    cel: ['', this.celularValidator.bind(this)],
+    email: ['', Validators.email],
+    document: ['', Validators.maxLength(20)],
   });
+
+  // Validador personalizado para celular (10-15 dígitos)
+  private celularValidator(control: AbstractControl) {
+    const value = control.value?.toString().trim();
+    if (!value || value === '') {
+      return null; // Campo opcional, no hay error si está vacío
+    }
+    return /^\d{10,15}$/.test(value) ? null : { celularInvalido: true };
+  }
 
   ngOnInit(): void {
     this.loadStudents();
@@ -43,6 +59,8 @@ export class CourseStudentComponent implements OnInit
         console.log('✅ Estudiantes cargados:', students);
         this.students.set(students);
         this.errorMessage.set(null);
+        // Cargar promedios de todos los estudiantes
+        this.loadAllAverages(students);
       },
       error: (err) => {
         console.error('❌ Error al cargar alumnos:', err);
@@ -55,9 +73,59 @@ export class CourseStudentComponent implements OnInit
     });
   }
 
+  loadAllAverages(students: Student[]) {
+    const averages = new Map<number, number>();
+    let completed = 0;
+    
+    if (students.length === 0) {
+      this.studentAverages.set(averages);
+      return;
+    }
+
+    students.forEach(student => {
+      if (student.id) {
+        this.gradeService.getStudentAverage(student.id, this.courseId).subscribe({
+          next: (response: any) => {
+            if (response.average !== null && response.average !== undefined) {
+              averages.set(student.id!, response.average);
+            }
+            completed++;
+            if (completed === students.length) {
+              this.studentAverages.set(averages);
+            }
+          },
+          error: () => {
+            completed++;
+            if (completed === students.length) {
+              this.studentAverages.set(averages);
+            }
+          }
+        });
+      }
+    });
+  }
+
+  // Método público para refrescar promedios (llamado desde el componente padre)
+  refreshAverages() {
+    this.loadAllAverages(this.students());
+  }
+
   addStudent() {
+    this.submitted.set(true);
+    this.errorMessage.set(null);
+
     if (this.form.invalid) {
-      this.errorMessage.set('Por favor completa el nombre del alumno.');
+      if (this.form.controls['firstName'].invalid) {
+        this.errorMessage.set('El nombre del estudiante es obligatorio.');
+      } else if (this.form.controls['email'].invalid) {
+        this.errorMessage.set('El email debe tener un formato válido.');
+      } else if (this.form.controls['cel'].invalid) {
+        this.errorMessage.set('El celular debe contener entre 10 y 15 dígitos numéricos.');
+      } else if (this.form.controls['document'].invalid) {
+        this.errorMessage.set('El documento no puede tener más de 20 caracteres.');
+      } else {
+        this.errorMessage.set('Por favor completa correctamente todos los campos.');
+      }
       return;
     }
 
@@ -75,15 +143,52 @@ export class CourseStudentComponent implements OnInit
         this.students.update(current => [...current, created]);
         this.form.reset();
         this.errorMessage.set(null);
+        this.submitted.set(false);
 
         // ✅ Emitir evento
         this.studentAdded.emit(created);
+        
+        // Cargar promedio del nuevo estudiante
+        if (created.id) {
+          this.gradeService.getStudentAverage(created.id, this.courseId).subscribe({
+            next: (response: any) => {
+              if (response.average !== null && response.average !== undefined) {
+                this.studentAverages.update(map => {
+                  const newMap = new Map(map);
+                  newMap.set(created.id!, response.average);
+                  return newMap;
+                });
+              }
+            }
+          });
+        }
       },
       error: (err) => {
         console.error('❌ Error al agregar alumno:', err);
         let errorMsg = 'No se pudo agregar el alumno';
         
-        if (err.error?.error) {
+        // Manejar errores de validación del backend (400 con campos)
+        if (err.status === 400 && err.error?.campos) {
+          const campos = err.error.campos;
+          const errores: string[] = [];
+          
+          if (campos.firstName) {
+            errores.push(`Nombre: ${campos.firstName}`);
+          }
+          if (campos.email) {
+            errores.push(`Email: ${campos.email}`);
+          }
+          if (campos.cel) {
+            errores.push(`Celular: ${campos.cel}`);
+          }
+          if (campos.document) {
+            errores.push(`Documento: ${campos.document}`);
+          }
+          
+          errorMsg = errores.length > 0 
+            ? `Errores de validación: ${errores.join(', ')}`
+            : err.error.mensaje || 'Error de validación. Verifica los campos ingresados.';
+        } else if (err.error?.error) {
           errorMsg = err.error.error;
         } else if (err.status === 401) {
           errorMsg = 'No estás autenticado. Por favor inicia sesión nuevamente.';
@@ -96,8 +201,150 @@ export class CourseStudentComponent implements OnInit
         }
         
         this.errorMessage.set(errorMsg);
+        this.submitted.set(true);
       }
     });
   }
+
+  editStudent(student: Student) {
+    this.editingStudent.set(student);
+    this.form.patchValue({
+      firstName: student.firstName,
+      lastName: student.lastName || '',
+      cel: student.cel || '',
+      email: student.email || '',
+      document: student.document || ''
+    });
+  }
+
+  cancelEdit() {
+    this.editingStudent.set(null);
+    this.form.reset();
+    this.submitted.set(false);
+    this.errorMessage.set(null);
+  }
+
+  updateStudent() {
+    this.submitted.set(true);
+    this.errorMessage.set(null);
+
+    if (this.form.invalid || !this.editingStudent()) {
+      if (this.form.controls['firstName'].invalid) {
+        this.errorMessage.set('El nombre del estudiante es obligatorio.');
+      } else if (this.form.controls['email'].invalid) {
+        this.errorMessage.set('El email debe tener un formato válido.');
+      } else if (this.form.controls['cel'].invalid) {
+        this.errorMessage.set('El celular debe contener entre 10 y 15 dígitos numéricos.');
+      } else if (this.form.controls['document'].invalid) {
+        this.errorMessage.set('El documento no puede tener más de 20 caracteres.');
+      } else {
+        this.errorMessage.set('Por favor completa correctamente todos los campos.');
+      }
+      return;
+    }
+
+    const studentId = this.editingStudent()!.id!;
+    const updatedData = {
+      ...this.form.getRawValue(),
+      courseId: this.courseId // Asegurar que se envía el courseId
+    };
+
+    console.log('📝 Actualizando estudiante ID:', studentId);
+    this.errorMessage.set(null);
+
+    this.studentService.updateStudent(studentId, updatedData).subscribe({
+      next: (updated) => {
+        console.log('✅ Estudiante actualizado exitosamente:', updated);
+        this.students.update(current => 
+          current.map(s => s.id === studentId ? updated : s)
+        );
+        this.editingStudent.set(null);
+        this.form.reset();
+        this.errorMessage.set(null);
+        this.submitted.set(false);
+        
+        // ✅ Emitir evento de actualización
+        this.studentUpdated.emit(updated);
+        
+        // Actualizar promedio si cambió
+        if (updated.id) {
+          this.gradeService.getStudentAverage(updated.id, this.courseId).subscribe({
+            next: (response: any) => {
+              if (response.average !== null && response.average !== undefined) {
+                this.studentAverages.update(map => {
+                  const newMap = new Map(map);
+                  newMap.set(updated.id!, response.average);
+                  return newMap;
+                });
+              } else {
+                this.studentAverages.update(map => {
+                  const newMap = new Map(map);
+                  newMap.delete(updated.id!);
+                  return newMap;
+                });
+              }
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error al actualizar alumno:', err);
+        let errorMsg = 'No se pudo actualizar el alumno';
+        
+        if (err.error?.error) {
+          errorMsg = err.error.error;
+        } else if (err.status === 401) {
+          errorMsg = 'No estás autenticado. Por favor inicia sesión nuevamente.';
+        } else if (err.status === 403) {
+          errorMsg = 'No tienes permisos para editar estudiantes de este curso.';
+        } else if (err.status === 404) {
+          errorMsg = 'El estudiante no existe.';
+        } else if (err.status === 0) {
+          errorMsg = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo.';
+        }
+        
+        this.errorMessage.set(errorMsg);
+      }
+    });
+  }
+
+  deleteStudent(id: number) {
+    if (!confirm("¿Seguro que deseas eliminar este estudiante? Esta acción no se puede deshacer.")) {
+      return;
+    }
+
+    console.log('🗑️ Eliminando estudiante ID:', id);
+    this.errorMessage.set(null);
+
+    this.studentService.removeStudent(id).subscribe({
+      next: () => {
+        console.log('✅ Estudiante eliminado exitosamente');
+        this.students.update(current => current.filter(s => s.id !== id));
+        this.errorMessage.set(null);
+        
+        // ✅ Emitir evento de eliminación
+        this.studentRemoved.emit(id);
+      },
+      error: (err) => {
+        console.error('❌ Error al eliminar alumno:', err);
+        let errorMsg = 'No se pudo eliminar el alumno';
+        
+        if (err.error?.error) {
+          errorMsg = err.error.error;
+        } else if (err.status === 401) {
+          errorMsg = 'No estás autenticado. Por favor inicia sesión nuevamente.';
+        } else if (err.status === 403) {
+          errorMsg = 'No tienes permisos para eliminar estudiantes de este curso.';
+        } else if (err.status === 404) {
+          errorMsg = 'El estudiante no existe.';
+        } else if (err.status === 0) {
+          errorMsg = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo.';
+        }
+        
+        this.errorMessage.set(errorMsg);
+      }
+    });
+  }
+
 
 }

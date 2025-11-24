@@ -1,10 +1,58 @@
 .grades-root { width: 100%; margin-top: 1rem; font-family: system-ui, Roboto, Arial; }
 
 .header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-.eval-form { display:flex; gap:8px; align-items:center; }
-.eval-form input[type="text"] { padding:6px 8px; border-radius:6px; border:1px solid #ccc; width:220px; }
-.eval-form input[type="date"] { padding:6px 8px; border-radius:6px; border:1px solid #ccc; }
-.eval-form button { padding:6px 10px; border-radius:6px; border:none; background:#1976d2; color:white; cursor:pointer; }
+.eval-form { display:flex; flex-direction: column; gap:8px; }
+.eval-form-fields { display:flex; gap:8px; align-items:center; }
+.eval-form input[type="text"] { 
+  padding:6px 8px; 
+  border-radius:6px; 
+  border:1px solid #ccc; 
+  width:220px;
+  transition: border-color 0.2s ease;
+}
+.eval-form input[type="text"]:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+.eval-form input[type="text"].invalid {
+  border-color: #c62828;
+}
+.eval-form input[type="date"] { 
+  padding:6px 8px; 
+  border-radius:6px; 
+  border:1px solid #ccc;
+  transition: border-color 0.2s ease;
+}
+.eval-form input[type="date"]:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+.eval-form input[type="date"].invalid {
+  border-color: #c62828;
+}
+.eval-form button { 
+  padding:6px 10px; 
+  border-radius:6px; 
+  border:none; 
+  background:#1976d2; 
+  color:white; 
+  cursor:pointer;
+  transition: background 0.2s ease;
+}
+.eval-form button:hover:not(:disabled) {
+  background: #1565c0;
+}
+.eval-form button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+.field-error {
+  color: #c62828;
+  font-size: 12px;
+  margin-top: -4px;
+}
 
 .table-wrap { overflow:auto; margin-top:12px; border:1px solid #e0e0e0; border-radius:8px; }
 table { border-collapse:collapse; width:100%; min-width:720px; }
@@ -17,6 +65,125 @@ th.eval-header { position:relative; min-width:120px; }
 .eval-date { font-size:0.8rem; color:#666; }
 .del-ev { position:absolute; top:6px; right:6px; background:transparent; border:none; cursor:pointer; }
 
-input[type="number"] { width:64px; padding:6px; border-radius:6px; border:1px solid #ccc; text-align:center; }
+input[type="number"].grade-input { 
+  width:64px; 
+  padding:6px; 
+  border-radius:6px; 
+  border:1px solid #ccc; 
+  text-align:center;
+  transition: border-color 0.2s ease;
+}
+input[type="number"].grade-input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
 .muted { color:#666; }
 .error { color:#c62828; font-weight:600; }
+
+/* Media Queries - Responsive */
+@media (max-width: 767px) {
+  .grades-root {
+    margin-top: 0.5rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header h3 {
+    font-size: 18px;
+    margin: 0;
+  }
+
+  .eval-form {
+    width: 100%;
+  }
+
+  .eval-form-fields {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .eval-form input[type="text"],
+  .eval-form input[type="date"] {
+    width: 100%;
+  }
+
+  .eval-form button {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .table-wrap {
+    margin-top: 12px;
+    border-radius: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 600px;
+  }
+
+  th, td {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+
+  .sticky-col {
+    min-width: 180px;
+    padding-left: 8px;
+    font-size: 12px;
+  }
+
+  .name-cell {
+    font-size: 11px;
+  }
+
+  .eval-header {
+    min-width: 100px;
+  }
+
+  .eval-title {
+    font-size: 11px;
+  }
+
+  .eval-date {
+    font-size: 10px;
+    display: none; /* Ocultar fecha en móvil para ahorrar espacio */
+  }
+
+  input[type="number"].grade-input {
+    width: 50px;
+    padding: 4px;
+    font-size: 12px;
+  }
+
+  .del-ev {
+    top: 4px;
+    right: 4px;
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .eval-form input[type="text"] {
+    width: 180px;
+  }
+
+  table {
+    min-width: 650px;
+  }
+
+  th, td {
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+
+  .sticky-col {
+    min-width: 200px;
+  }
+}

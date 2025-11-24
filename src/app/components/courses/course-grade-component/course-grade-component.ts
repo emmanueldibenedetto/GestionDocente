@@ -1,4 +1,4 @@
-import { Component, Input, inject, signal, OnInit } from '@angular/core';
+import { Component, Input, inject, signal, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Student } from '../../../core/models/student';
@@ -18,6 +18,7 @@ import { GradeService } from '../../../core/services/grade-service';
 
 export class CourseGradesComponent implements OnInit {
   @Input({ required: true }) courseId!: number;
+  @Output() gradesUpdated = new EventEmitter<void>();
 
   private studentService = inject(StudentService);
   private evaluationService = inject(EvaluationService);
@@ -79,12 +80,27 @@ export class CourseGradesComponent implements OnInit {
 
   // crear evaluación rápida
   addEvaluation() {
-    if (this.evalForm.invalid) return;
+    if (this.evalForm.invalid) {
+      this.error.set('Por favor completa el nombre de la evaluación.');
+      return;
+    }
+
+    const nombre = this.evalForm.value.name!.trim();
+    if (!nombre || nombre === '') {
+      this.error.set('El nombre de la evaluación no puede estar vacío.');
+      return;
+    }
+
+    const fecha = this.evalForm.value.date || new Date().toISOString().split('T')[0];
+    if (!fecha) {
+      this.error.set('La fecha es obligatoria.');
+      return;
+    }
 
     const payload: Omit<Evaluation, 'id'> = {
       courseId: this.courseId,
-      nombre: this.evalForm.value.name!.trim(),
-      date: this.evalForm.value.date || new Date().toISOString().split('T')[0],
+      nombre: nombre,
+      date: fecha,
       tipo: 'examen' // Valor por defecto, puede ser configurable
     };
 
@@ -93,16 +109,37 @@ export class CourseGradesComponent implements OnInit {
         // actualizar lista de evaluaciones
         this.evaluations.update(list => [...list, created]);
         this.evalForm.reset();
+        this.error.set(null);
       },
-      error: () => this.error.set('No se pudo crear la evaluación')
+      error: (err) => {
+        console.error('❌ Error al crear evaluación:', err);
+        let errorMsg = 'No se pudo crear la evaluación';
+        
+        if (err.error?.error) {
+          errorMsg = err.error.error;
+        } else if (err.status === 400) {
+          errorMsg = 'Error al crear la evaluación. Verifica los datos ingresados.';
+        } else if (err.status === 0) {
+          errorMsg = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo.';
+        }
+        
+        this.error.set(errorMsg);
+      }
     });
   }
 
   // actualizar o crear nota
   updateGrade(studentId: number, evaluationId: number, rawValue: string) {
-    // normalizar: vacío => 0 (backend requiere @NotNull)
+    // Validar rango 0-10 (o 0-100 según corresponda)
     const parsed = rawValue === '' ? 0 : Number(rawValue);
     const value: number = Number.isNaN(parsed) ? 0 : parsed;
+    
+    // Validar rango (0-10 según el backend)
+    if (value < 0 || value > 10) {
+      this.error.set(`La nota debe estar entre 0 y 10. Valor ingresado: ${value}`);
+      // No actualizar si está fuera de rango
+      return;
+    }
 
     // buscar existente
     const existing = this.grades().find(g => g.studentId === studentId && g.evaluationId === evaluationId);
@@ -128,6 +165,8 @@ export class CourseGradesComponent implements OnInit {
           }
           return [...list, saved];
         });
+        // Emitir evento para actualizar promedios
+        this.gradesUpdated.emit();
       },
       error: () => {
         this.error.set('No se pudo guardar la nota');

@@ -1,14 +1,19 @@
+@if (errorMessage()) {
+  <p class="error-message">{{ errorMessage() }}</p>
+}
+
 <div class="courses-grid">
 
   @for (c of courses(); track c.id) {
-    <div class="course-card" routerLink="/course/detail/{{c.id}}">
-
-      <h3 class="course-title">{{ c.name }}</h3>
-      <p class="course-school">{{ c.school }}</p>
+    <div class="course-card">
+      <div class="course-content" routerLink="/course/detail/{{c.id}}">
+        <h3 class="course-title">{{ c.name }}</h3>
+        <p class="course-school">{{ c.school }}</p>
+      </div>
 
       <div class="course-actions">
-        <button class="btn-edit" (click)="editCourse(c.id!)">✏️ Editar</button>
-        <button class="btn-delete" (click)="deleteCourse(c.id!)">🗑 Eliminar</button>
+        <button class="btn-edit" (click)="editCourse(c.id!); $event.stopPropagation()">✏️ Editar</button>
+        <button class="btn-delete" (click)="deleteCourse(c.id!); $event.stopPropagation()">🗑 Eliminar</button>
       </div>
 
     </div>

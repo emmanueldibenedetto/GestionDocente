@@ -1,11 +1,34 @@
-<h2>Curso {{course()?.name}} de la {{course()?.school}}</h2>
+<div class="course-detail">
+  <div class="header">
+    <h2>Curso {{course()?.name}} - {{course()?.school}}</h2>
 
- <app-course-students
+    <button class="btn-toggle" (click)="toggleVista()">
+      @if (mostrarAsistencias()) {
+        Volver a Notas
+      } @else {
+        Ver Asistencias
+      }
+    </button>
+  </div>
+
+  <!-- Lista de alumnos (siempre visible) -->
+  <app-course-students
     [courseId]="courseId()"
-    (studentAdded)="onStudentAdded($event)">
+    (studentAdded)="onStudentAdded($event)"
+    (studentRemoved)="onStudentRemoved($event)"
+    (studentUpdated)="onStudentUpdated($event)">
   </app-course-students>
 
-  <app-course-grades
-    [courseId]="courseId()"
-    #gradesComp>
-  </app-course-grades>
+  <!-- Toggle entre Notas y Asistencias -->
+  @if (mostrarAsistencias()) {
+    <app-course-attendance
+      [courseId]="courseId()">
+    </app-course-attendance>
+  } @else {
+    <app-course-grades
+      [courseId]="courseId()"
+      #gradesComp
+      (gradesUpdated)="onGradesUpdated()">
+    </app-course-grades>
+  }
+</div>

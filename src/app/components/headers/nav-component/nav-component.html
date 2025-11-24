@@ -4,8 +4,11 @@
   <div class="user-section" (click)="toggleMenu()">
     
     <img 
-      [src]="localImage() || userImage || 'assets/default-profile.png'"
+      [src]="getImageSrc()"
       class="profile-img"
+      (error)="handleImageError($event)"
+      (load)="imageError.set(false)"
+      alt="Foto de perfil"
     />
 
     <span class="username">
@@ -35,11 +38,24 @@
     </div>
   </div>
 
+  <!-- Botón hamburguesa (solo móvil) -->
+  <button class="hamburger-btn" (click)="toggleMobileMenu()" aria-label="Menú">
+    <span class="hamburger-icon">☰</span>
+  </button>
+
   <!-- Lado derecho -->
-  <div class="nav-links">
-    <a routerLink="/course/list">Mis cursos</a>
-    <a routerLink="/course/create">Crear curso</a>
-    <a class="logout" (click)="logout()">Cerrar sesión</a>
+  <div class="nav-links" [class.mobile-open]="mobileMenuOpen()">
+    <a routerLink="/course/list" (click)="closeMobileMenu()">Mis cursos</a>
+    <a routerLink="/course/create" (click)="closeMobileMenu()">Crear curso</a>
+    @if (isAdmin) {
+      <a routerLink="/professors/list" (click)="closeMobileMenu()">Profesores</a>
+    }
+    <a class="logout" (click)="logout(); closeMobileMenu()">Cerrar sesión</a>
   </div>
+
+  <!-- Overlay para móvil -->
+  @if (mobileMenuOpen()) {
+    <div class="mobile-overlay" (click)="closeMobileMenu()"></div>
+  }
 
 </nav>

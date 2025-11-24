@@ -1,25 +1,102 @@
 
 <h3>Alumnos</h3>
 
-<form [formGroup]="form" (ngSubmit)="addStudent()">
+<form [formGroup]="form" (ngSubmit)="editingStudent() ? updateStudent() : addStudent()" class="student-form">
 
+  <div class="form-row">
+    <div class="form-field-inline">
+      <input 
+        type="text" 
+        placeholder="Nombre *" 
+        formControlName="firstName" 
+        required
+        [class.invalid]="submitted() && form.controls['firstName'].invalid">
+      @if (submitted() && form.controls['firstName'].invalid) {
+        <small class="field-error">Nombre obligatorio</small>
+      }
+    </div>
+    <div class="form-field-inline">
+      <input type="text" placeholder="Apellido" formControlName="lastName">
+    </div>
+    <div class="form-field-inline">
+      <input 
+        type="text" 
+        placeholder="Celular (10-15 dígitos)" 
+        formControlName="cel"
+        [class.invalid]="submitted() && form.controls['cel'].invalid">
+      @if (submitted() && form.controls['cel'].invalid) {
+        <small class="field-error">10-15 dígitos numéricos</small>
+      }
+    </div>
+    <div class="form-field-inline">
+      <input 
+        type="email" 
+        placeholder="Email" 
+        formControlName="email"
+        [class.invalid]="submitted() && form.controls['email'].invalid">
+      @if (submitted() && form.controls['email'].invalid) {
+        <small class="field-error">Formato de email inválido</small>
+      }
+    </div>
+    <div class="form-field-inline">
+      <input 
+        type="text" 
+        placeholder="Documento" 
+        formControlName="document"
+        [class.invalid]="submitted() && form.controls['document'].invalid">
+      @if (submitted() && form.controls['document'].invalid) {
+        <small class="field-error">Máximo 20 caracteres</small>
+      }
+    </div>
+  </div>
 
-  <input type="text" placeholder="Nombre" formControlName="firstName" required>
-  <input type="text" placeholder="Apellido" formControlName="lastName">
-  <input type="text" placeholder="Celular" formControlName="cel">
-  <input type="email" placeholder="Email" formControlName="email">
-  <input type="text" placeholder="Documento" formControlName="document">
-
-  <button type="submit">Agregar Alumno</button>
+  <div class="form-actions">
+    @if (editingStudent()) {
+      <button type="submit">💾 Guardar Cambios</button>
+      <button type="button" (click)="cancelEdit()">❌ Cancelar</button>
+    } @else {
+      <button type="submit">➕ Agregar Alumno</button>
+    }
+  </div>
 
 </form>
 
-<ul>
-  @for (s of students(); track s.id) {
-    <li>ID: {{s.id}}, {{ s.lastName }}, {{ s.firstName }}, Cel: {{s.cel}}, Email: {{s.email}}, DNI: {{s.document}}</li>
-  }
-</ul>
+<table class="students-table">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Apellido</th>
+      <th>Celular</th>
+      <th>Email</th>
+      <th>Documento</th>
+      <th>Promedio</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (s of students(); track s.id) {
+      <tr class="student-row">
+        <td data-label="Nombre">{{ s.firstName }}</td>
+        <td data-label="Apellido">{{ s.lastName || '-' }}</td>
+        <td data-label="Celular">{{ s.cel || '-' }}</td>
+        <td data-label="Email">{{ s.email || '-' }}</td>
+        <td data-label="Documento">{{ s.document || '-' }}</td>
+        <td class="average-cell" data-label="Promedio">
+          @if (studentAverages().has(s.id!)) {
+            <span class="average-value">{{ studentAverages().get(s.id!)!.toFixed(2) }}</span>
+          } @else {
+            <span class="average-loading">-</span>
+          }
+        </td>
+        <td class="actions-cell" data-label="">
+          <button class="btn-edit-student" (click)="editStudent(s)">✏️ Editar</button>
+          <button class="btn-delete-student" (click)="deleteStudent(s.id!)">🗑 Eliminar</button>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
 
 @if(errorMessage()) {
-  <p style="color:red">{{ errorMessage() }}</p>
+  <p class="error-message">{{ errorMessage() }}</p>
 }

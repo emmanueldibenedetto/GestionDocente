@@ -6,6 +6,7 @@ import { CourseEditPage } from './pages/courses/course-edit-page/course-edit-pag
 import { CourseCreatePage } from './pages/courses/course-create-page/course-create-page';
 import { CourseDetailPage } from './pages/courses/course-detail-page/course-detail-page';
 import { EditProfessorPage } from './pages/edit-professor-page/edit-professor-page';
+import { ProfessorsListPage } from './pages/professors-list-page/professors-list-page';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
@@ -15,5 +16,6 @@ export const routes: Routes = [
     { path: 'course/create', component: CourseCreatePage },
     { path: 'course/detail/:id', component: CourseDetailPage },
     { path: 'auth/edit', component: EditProfessorPage },
-    { path: 'auth/login', component: LoginPage }
+    { path: 'auth/login', component: LoginPage },
+    { path: 'professors/list', component: ProfessorsListPage }
 ];
