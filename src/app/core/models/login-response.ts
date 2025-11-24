@@ -1,11 +1,10 @@
 import { Professor } from './professor';
 
 /**
- * Respuesta del endpoint de login del backend
+ * Respuesta del endpoint de login
  */
 export interface LoginResponse {
   token: string;
-  expiresIn: number; // en segundos
   professor: Professor;
 }
 

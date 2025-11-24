@@ -7,7 +7,7 @@ import { AuthService } from '../../core/services/auth-service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-login-page',
@@ -30,6 +30,7 @@ export class LoginPage {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -60,7 +61,10 @@ export class LoginPage {
       }
 
       console.log('✅ Login exitoso, token guardado:', token.substring(0, 20) + '...');
-      this.router.navigate(['/course/list']);
+      
+      // Obtener URL de retorno si existe (desde query params del guard)
+      const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/course/list';
+      this.router.navigate([returnUrl]);
     },
     error: (err) => {
       this.loading.set(false);
