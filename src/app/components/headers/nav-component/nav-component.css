@@ -204,14 +204,16 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  z-index: 1000;
+  transition: opacity 0.3s ease;
 }
 
 /* Media Queries - Responsive */
 @media (max-width: 767px) {
   .navbar {
     padding: 10px 16px;
-    position: relative;
+    position: sticky;
+    top: 0;
   }
 
   .username {
@@ -246,6 +248,7 @@
     transition: right 0.3s ease;
     z-index: 1001;
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
   }
 
   .nav-links.mobile-open {
@@ -261,7 +264,7 @@
     font-size: 16px;
   }
 
-  .mobile-overlay {
+  .mobile-overlay.mobile-open {
     display: block;
   }
 

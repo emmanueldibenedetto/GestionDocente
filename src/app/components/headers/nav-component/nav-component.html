@@ -45,17 +45,24 @@
 
   <!-- Lado derecho -->
   <div class="nav-links" [class.mobile-open]="mobileMenuOpen()">
-    <a routerLink="/course/list" (click)="closeMobileMenu()">Mis cursos</a>
-    <a routerLink="/course/create" (click)="closeMobileMenu()">Crear curso</a>
+    <!-- Solo profesores pueden ver cursos -->
+    @if (!isAdmin) {
+      <a routerLink="/course/list" (click)="closeMobileMenu()">Mis cursos</a>
+      <a routerLink="/course/create" (click)="closeMobileMenu()">Crear curso</a>
+    }
+    
+    <!-- Solo admins pueden ver profesores y crear admins -->
     @if (isAdmin) {
       <a routerLink="/professors/list" (click)="closeMobileMenu()">Profesores</a>
+      <a routerLink="/auth/register" (click)="closeMobileMenu()">Crear Administrador</a>
     }
+    
     <a class="logout" (click)="logout(); closeMobileMenu()">Cerrar sesión</a>
   </div>
 
   <!-- Overlay para móvil -->
   @if (mobileMenuOpen()) {
-    <div class="mobile-overlay" (click)="closeMobileMenu()"></div>
+    <div class="mobile-overlay mobile-open" (click)="closeMobileMenu()"></div>
   }
 
 </nav>

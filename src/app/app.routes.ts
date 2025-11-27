@@ -17,26 +17,30 @@ export const routes: Routes = [
     { path: 'auth/login', component: LoginPage },
     { path: 'auth/register', component: RegisterPage },
     
-    // Rutas protegidas (requieren autenticación)
+    // Rutas protegidas (requieren autenticación y rol PROFESSOR)
     { 
         path: 'course/list', 
         component: CoursesPage,
-        canActivate: [authGuard]
+        canActivate: [authGuard, roleGuard],
+        data: { roles: [Role.PROFESSOR] }
     },
     { 
         path: 'course/create', 
         component: CourseCreatePage,
-        canActivate: [authGuard]
+        canActivate: [authGuard, roleGuard],
+        data: { roles: [Role.PROFESSOR] }
     },
     { 
         path: 'course/edit/:id', 
         component: CourseEditPage,
-        canActivate: [authGuard]
+        canActivate: [authGuard, roleGuard],
+        data: { roles: [Role.PROFESSOR] }
     },
     { 
         path: 'course/detail/:id', 
         component: CourseDetailPage,
-        canActivate: [authGuard]
+        canActivate: [authGuard, roleGuard],
+        data: { roles: [Role.PROFESSOR] }
     },
     { 
         path: 'auth/edit', 

@@ -23,6 +23,12 @@ export class ProfessorService {
     });
   }
 
+  searchProfessors(query: string): Observable<Professor[]> {
+    return this.http.get<Professor[]>(`${this.BASE_URL}${API_CONFIG.PROFESSORS.BASE}/search`, {
+      params: { query }
+    });
+  }
+
   updateProfessor(id: number, professor: Partial<Professor>): Observable<Professor> {
     return this.http.put<Professor>(`${this.BASE_URL}${API_CONFIG.PROFESSORS.BASE}/${id}`, professor);
   }

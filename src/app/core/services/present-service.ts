@@ -28,5 +28,48 @@ export class PresentService {
   getAttendancePercentage(studentId: number, courseId: number): Observable<number> {
     return this.http.get<number>(`${this.BASE_URL}/attendances/student/${studentId}/course/${courseId}/percentage`);
   }
+
+  /**
+   * Crea múltiples asistencias en una sola operación.
+   * Nota: El backend no tiene un endpoint batch, así que hacemos múltiples requests.
+   */
+  createManyAttendances(attendances: Present[]): Observable<Present[]> {
+    // El backend no tiene un endpoint batch, así que creamos cada asistencia individualmente
+    // En el futuro se podría optimizar con un endpoint batch en el backend
+    const requests = attendances.map(attendance => this.markAttendance(attendance));
+    return new Observable(observer => {
+      const results: Present[] = [];
+      let completed = 0;
+      const total = requests.length;
+
+      if (total === 0) {
+        observer.next(results);
+        observer.complete();
+        return;
+      }
+
+      requests.forEach((request, index) => {
+        request.subscribe({
+          next: (result) => {
+            results[index] = result;
+            completed++;
+            if (completed === total) {
+              observer.next(results);
+              observer.complete();
+            }
+          },
+          error: (err) => {
+            console.error(`Error al crear asistencia ${index}:`, err);
+            completed++;
+            if (completed === total) {
+              // Aún así retornamos los resultados que se crearon exitosamente
+              observer.next(results);
+              observer.complete();
+            }
+          }
+        });
+      });
+    });
+  }
 }
 

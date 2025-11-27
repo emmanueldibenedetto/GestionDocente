@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth-service';
+import { Role } from '../../core/enums/roles';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -62,8 +63,22 @@ export class LoginPage {
 
       console.log('✅ Login exitoso, token guardado:', token.substring(0, 20) + '...');
       
+      // Obtener el profesor logueado para determinar la redirección según su rol
+      const professor = this.auth.currentProfessor();
+      const userRole = professor?.role;
+      
       // Obtener URL de retorno si existe (desde query params del guard)
-      const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/course/list';
+      let returnUrl = this.route.snapshot.queryParams['returnUrl'];
+      
+      // Si no hay returnUrl, redirigir según el rol
+      if (!returnUrl) {
+        if (userRole === Role.ADMIN) {
+          returnUrl = '/professors/list'; // Admins van a la lista de profesores
+        } else {
+          returnUrl = '/course/list'; // Profesores van a sus cursos
+        }
+      }
+      
       this.router.navigate([returnUrl]);
     },
     error: (err) => {

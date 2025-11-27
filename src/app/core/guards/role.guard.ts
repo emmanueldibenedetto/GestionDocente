@@ -40,8 +40,8 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const userRole = currentUser?.role;
 
   if (!userRole) {
-    // Usuario sin rol asignado, denegar acceso
-    router.navigate(['/course/list']); // Redirigir a página principal
+    // Usuario sin rol asignado, denegar acceso y redirigir según rol por defecto
+    router.navigate(['/auth/login']);
     return false;
   }
 
@@ -50,8 +50,12 @@ export const roleGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  // Usuario no tiene el rol requerido, denegar acceso
-  router.navigate(['/course/list']); // Redirigir a página principal
+  // Usuario no tiene el rol requerido, redirigir según su rol
+  if (userRole === Role.ADMIN) {
+    router.navigate(['/professors/list']); // Admin va a lista de profesores
+  } else {
+    router.navigate(['/course/list']); // Profesor va a sus cursos
+  }
   return false;
 };
 

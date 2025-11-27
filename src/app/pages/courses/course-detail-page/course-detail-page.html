@@ -22,7 +22,8 @@
   <!-- Toggle entre Notas y Asistencias -->
   @if (mostrarAsistencias()) {
     <app-course-attendance
-      [courseId]="courseId()">
+      [courseId]="courseId()"
+      [students]="studentsForChildren()">
     </app-course-attendance>
   } @else {
     <app-course-grades

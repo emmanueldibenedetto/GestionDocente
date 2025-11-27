@@ -1,278 +1,288 @@
-import { Component, Input, inject, signal, OnInit } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Component, computed, input, OnInit, signal, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+
 import { Student } from '../../../core/models/student';
 import { Present } from '../../../core/models/present';
-import { StudentService } from '../../../core/services/student-service';
 import { PresentService } from '../../../core/services/present-service';
 
 @Component({
   selector: 'app-course-attendance',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DecimalPipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './course-asistent-component.html',
   styleUrls: ['./course-asistent-component.css']
 })
 export class CourseAttendanceComponent implements OnInit {
-  @Input({ required: true }) courseId!: number;
 
-  private studentService = inject(StudentService);
+  // ─────────────────────────────────────────────────────────────
+  // INPUTS
+  // ─────────────────────────────────────────────────────────────
+  courseId = input.required<number>();
+  students = input.required<Student[]>();
+
+  // ─────────────────────────────────────────────────────────────
+  // Servicios
+  // ─────────────────────────────────────────────────────────────
   private presentService = inject(PresentService);
-  private fb = inject(FormBuilder);
 
-  students = signal<Student[]>([]);
-  attendances = signal<Present[]>([]);
-  attendancePercentages = signal<Map<number, number>>(new Map());
-  selectedDate = signal<string>(new Date().toISOString().split('T')[0]);
-  loading = signal(false);
-  error = signal<string | null>(null);
-  
-  // Estado temporal de asistencias antes de guardar
-  pendingAttendances = signal<Map<number, boolean>>(new Map());
+  // ─────────────────────────────────────────────────────────────
+  // Estado interno
+  // ─────────────────────────────────────────────────────────────
+  registros = signal<Present[]>([]);
 
-  attendanceForm = this.fb.nonNullable.group({
-    date: [this.selectedDate(), Validators.required]
+  // ─────────────────────────────────────────────────────────────
+  // Computed reactivos
+  // ─────────────────────────────────────────────────────────────
+
+  fechas = computed(() =>
+    [...new Set(this.registros().map(r => r.date))].sort()
+  );
+
+  presenteMap = computed(() => {
+    const map = new Map<string, Map<number, boolean>>();
+
+    this.registros().forEach(r => {
+      if (!map.has(r.date)) map.set(r.date, new Map());
+      map.get(r.date)!.set(r.studentId, r.present);
+    });
+
+    return map;
   });
 
-  ngOnInit() {
-    this.loadStudents();
-    this.loadAttendances();
+  porcentajePorAlumno = computed(() => {
+    const total = this.fechas().length;
+    const map = new Map<number, number>();
+    if (total === 0) return map;
+
+    for (const s of this.students()) {
+      if (!s.id) continue;
+      let presentes = 0;
+      for (const f of this.fechas()) {
+        if (this.presenteMap().get(f)?.get(s.id)) presentes++;
+      }
+      map.set(s.id, Math.round((presentes / total) * 100));
+    }
+
+    return map;
+  });
+
+  totalPresentesPorFecha = computed(() => {
+    const map = new Map<string, number>();
+
+    for (const f of this.fechas()) {
+      let count = 0;
+      for (const s of this.students()) {
+        if (s.id && this.presenteMap().get(f)?.get(s.id)) count++;
+      }
+      map.set(f, count);
+    }
+
+    return map;
+  });
+
+  hoyFormateado = computed(() =>
+    new Date().toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // INIT
+  // ─────────────────────────────────────────────────────────────
+
+  ngOnInit(): void {
+    this.cargarDatos();
   }
 
-  loadAttendancePercentages() {
-    const students = this.students();
-    if (students.length === 0) {
+  private cargarDatos() {
+    const cid = this.courseId();
+
+    this.presentService.getAttendancesByCourse(cid).subscribe({
+      next: data => {
+        this.registros.set(data);
+      },
+      error: err => {
+        console.error('Error al cargar asistencias:', err);
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // MÉTODOS PÚBLICOS — visibles desde el template
+  // ─────────────────────────────────────────────────────────────
+
+  public agregarFechaHoy(): void {
+    const hoy = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    const cid = this.courseId();
+
+    if (this.fechas().includes(hoy)) {
+      alert('Ya existe la asistencia de hoy');
       return;
     }
 
-    // Limpiar porcentajes anteriores
-    this.attendancePercentages.set(new Map());
+    // Crear asistencias para todos los estudiantes (por defecto presentes)
+    const nuevos: Present[] = this.students()
+      .filter(s => s.id !== undefined)
+      .map(s => ({
+        courseId: cid,
+        studentId: s.id!,
+        date: hoy,
+        present: true
+      }));
 
-    let completed = 0;
-    const total = students.length;
-
-    students.forEach(student => {
-      if (student.id) {
-        this.presentService.getAttendancePercentage(student.id, this.courseId).subscribe({
-          next: percentage => {
-            this.attendancePercentages.update(map => {
-              const newMap = new Map(map);
-              newMap.set(student.id!, percentage);
-              return newMap;
-            });
-            completed++;
-          },
-          error: (err) => {
-            console.error(`Error al obtener porcentaje para estudiante ${student.id}:`, err);
-            // En caso de error, establecer 0 como fallback
-            this.attendancePercentages.update(map => {
-              const newMap = new Map(map);
-              newMap.set(student.id!, 0);
-              return newMap;
-            });
-            completed++;
-          }
-        });
-      } else {
-        completed++;
+    this.presentService.createManyAttendances(nuevos).subscribe({
+      next: creados => {
+        this.registros.update(prev => [...prev, ...creados]);
+      },
+      error: err => {
+        console.error('Error al crear asistencias:', err);
+        alert('Error al crear las asistencias de hoy');
       }
     });
   }
 
-  loadStudents() {
-    this.studentService.getStudentsByCourse(this.courseId).subscribe({
-      next: students => {
-        this.students.set(students);
-        // Cargar porcentajes después de cargar estudiantes
-        if (students.length > 0) {
-          this.loadAttendancePercentages();
-        }
-      },
-      error: () => this.error.set('Error al cargar estudiantes')
-    });
-  }
-
-  loadAttendances() {
-    this.presentService.getAttendancesByCourse(this.courseId).subscribe({
-      next: attendances => this.attendances.set(attendances),
-      error: () => this.error.set('Error al cargar asistencias')
-    });
-  }
-
-  onDateChange(date: string) {
-    this.selectedDate.set(date);
-    this.pendingAttendances.set(new Map()); // Limpiar cambios pendientes
-    this.loadAttendances();
-    // Recargar porcentajes después de cambiar la fecha
-    this.loadAttendancePercentages();
-  }
-
-  toggleAttendance(studentId: number, present: boolean) {
-    // Solo actualizar el estado temporal, no guardar todavía
-    this.pendingAttendances.update(map => {
-      const newMap = new Map(map);
-      newMap.set(studentId, present);
-      return newMap;
-    });
-  }
-
-  updateAttendancePercentage(studentId: number) {
-    this.presentService.getAttendancePercentage(studentId, this.courseId).subscribe({
-      next: percentage => {
-        this.attendancePercentages.update(map => {
-          const newMap = new Map(map);
-          newMap.set(studentId, percentage);
-          return newMap;
-        });
-      },
-      error: () => {
-        // Ignorar errores
-      }
-    });
-  }
-
-  isPresent(studentId: number): boolean {
-    // Primero verificar si hay un cambio pendiente
-    const pending = this.pendingAttendances().get(studentId);
-    if (pending !== undefined) {
-      return pending;
-    }
+  public toggleAsistencia(studentId: number, date: string, checked: boolean): void {
+    const registro = this.registros().find(r => r.studentId === studentId && r.date === date);
     
-    // Si no hay cambio pendiente, verificar asistencia guardada
-    const date = this.selectedDate();
-    const attendance = this.attendances().find(
-      a => a.studentId === studentId && a.date === date
+    if (!registro) {
+      // Si no existe, crear nueva asistencia
+      const nueva: Present = {
+        courseId: this.courseId(),
+        studentId: studentId,
+        date: date,
+        present: checked
+      };
+      
+      this.presentService.markAttendance(nueva).subscribe({
+        next: creada => {
+          this.registros.update(prev => [...prev, creada]);
+        },
+        error: err => {
+          console.error('Error al crear asistencia:', err);
+        }
+      });
+      return;
+    }
+
+    if (!registro.id) {
+      console.error('Asistencia sin ID, no se puede actualizar');
+      return;
+    }
+
+    const actualizado = { ...registro, present: checked };
+
+    this.presentService.updateAttendance(registro.id, actualizado).subscribe({
+      next: res => {
+        this.registros.update(prev => prev.map(r => r.id === res.id ? res : r));
+      },
+      error: err => {
+        console.error('Error al actualizar asistencia:', err);
+      }
+    });
+  }
+
+  public marcarTodosFecha(date: string, present: boolean): void {
+    const registrosDeFecha = this.registros().filter(r => r.date === date);
+
+    registrosDeFecha.forEach(r => {
+      if (!r.id) return;
+      const actualizado = { ...r, present };
+      this.presentService.updateAttendance(r.id, actualizado).subscribe({
+        next: res => {
+          this.registros.update(prev => prev.map(reg => reg.id === res.id ? res : reg));
+        },
+        error: err => {
+          console.error('Error al actualizar asistencia:', err);
+        }
+      });
+    });
+
+    // Actualizar estado local inmediatamente
+    this.registros.update(prev =>
+      prev.map(r => r.date === date ? { ...r, present } : r)
     );
-    return attendance?.present ?? true; // Por defecto: presente
   }
 
-  getAttendancePercentage(studentId: number): number {
-    return this.attendancePercentages().get(studentId) ?? 0;
+  public formatearFecha(iso: string): string {
+    return new Date(iso).toLocaleDateString('es-ES', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short'
+    }).replace('.', '');
   }
 
-  // Guardar todas las asistencias: crea o actualiza asistencias para TODOS los estudiantes
-  // Usa los valores seleccionados (pendientes) o "presente" (true) por defecto si no hay selección
-  saveAllAttendances() {
-    const date = this.selectedDate();
-    const students = this.students();
-    const pending = this.pendingAttendances();
-    const attendances = this.attendances();
+  // ─────────────────────────────────────────────────────────────
+  // Exportar Excel
+  // ─────────────────────────────────────────────────────────────
+
+  public async exportarExcel(): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Asistencias');
+
+    const numFechas = this.fechas().length;
+    const lastCol = String.fromCharCode(65 + numFechas + 1);
     
-    this.loading.set(true);
-    this.error.set(null);
+    sheet.mergeCells('A1', `${lastCol}1`);
+    sheet.getCell('A1').value = `Asistencias - Curso ${this.courseId()}`;
+    sheet.getCell('A1').font = { size: 16, bold: true };
+    sheet.getCell('A1').alignment = { horizontal: 'center' };
 
-    let completed = 0;
-    let total = students.length;
+    // Cabeceras
+    const header = sheet.getRow(3);
+    header.getCell(1).value = 'Alumno';
 
-    if (total === 0) {
-      this.loading.set(false);
-      return;
-    }
-
-    // Procesar TODOS los estudiantes
-    students.forEach(student => {
-      if (!student.id) {
-        completed++;
-        if (completed === total) {
-          this.finishSaving();
-        }
-        return;
-      }
-
-      // Determinar el valor a guardar:
-      // 1. Si hay un cambio pendiente (seleccionado por el usuario), usar ese valor
-      // 2. Si no hay cambio pendiente pero ya tiene asistencia guardada, mantener ese valor
-      // 3. Si no hay cambio pendiente ni asistencia guardada, usar "presente" (true) por defecto
-      const pendingValue = pending.get(student.id);
-      const existing = attendances.find(
-        a => a.studentId === student.id && a.date === date
-      );
-
-      let valueToSave: boolean;
-      if (pendingValue !== undefined) {
-        // Hay cambio pendiente (usuario seleccionó presente/ausente), usar ese valor
-        valueToSave = pendingValue;
-      } else if (existing) {
-        // No hay cambio pendiente pero ya tiene asistencia guardada, mantener el valor actual
-        valueToSave = existing.present;
-      } else {
-        // No hay cambio pendiente ni asistencia guardada, usar "presente" (true) por defecto
-        valueToSave = true;
-      }
-
-      // Crear o actualizar asistencia
-      if (existing) {
-        // Ya existe, actualizar solo si el valor cambió
-        if (existing.present !== valueToSave) {
-          const updatedAttendance: Present = {
-            ...existing,
-            present: valueToSave
-          };
-
-          this.presentService.updateAttendance(existing.id!, updatedAttendance).subscribe({
-            next: updated => {
-              this.attendances.update(list =>
-                list.map(a => a.id === updated.id ? updated : a)
-              );
-              completed++;
-              if (completed === total) {
-                this.finishSaving();
-              }
-            },
-            error: () => {
-              this.error.set(`Error al guardar asistencia para ${student.firstName} ${student.lastName}`);
-              completed++;
-              if (completed === total) {
-                this.finishSaving();
-              }
-            }
-          });
-        } else {
-          // El valor no cambió, solo contar
-          completed++;
-          if (completed === total) {
-            this.finishSaving();
-          }
-        }
-      } else {
-        // No existe, crear nueva
-        const newAttendance: Present = {
-          id: undefined,
-          date,
-          present: valueToSave,
-          courseId: this.courseId,
-          studentId: student.id
-        };
-
-        this.presentService.markAttendance(newAttendance).subscribe({
-          next: created => {
-            this.attendances.update(list => [...list, created]);
-            completed++;
-            if (completed === total) {
-              this.finishSaving();
-            }
-          },
-          error: () => {
-            this.error.set(`Error al guardar asistencia para ${student.firstName} ${student.lastName}`);
-            completed++;
-            if (completed === total) {
-              this.finishSaving();
-            }
-          }
-        });
-      }
+    this.fechas().forEach((f, i) => {
+      header.getCell(2 + i).value = this.formatearFecha(f);
     });
-  }
 
-  private finishSaving() {
-    this.loading.set(false);
-    this.pendingAttendances.set(new Map()); // Limpiar cambios pendientes
-    this.loadAttendances(); // Recargar lista completa desde el backend
-    // Recargar porcentajes después de guardar para mostrar el promedio actualizado
-    // El delay asegura que el backend haya procesado todos los cambios
-    setTimeout(() => {
-      this.loadAttendancePercentages();
-    }, 800);
+    header.getCell(2 + numFechas).value = '% Asistencia';
+    header.font = { bold: true };
+
+    // Datos
+    this.students().forEach((s, rowIdx) => {
+      if (!s.id) return;
+      
+      const row = sheet.getRow(4 + rowIdx);
+      row.getCell(1).value = s.firstName;
+
+      this.fechas().forEach((f, colIdx) => {
+        const presente = this.presenteMap().get(f)?.get(s.id!) ?? false;
+        const cell = row.getCell(2 + colIdx);
+        cell.value = presente ? 'P' : 'A';
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: presente ? 'FFCCFFCC' : 'FFFFCCCC' }
+        };
+      });
+
+      const porc = this.porcentajePorAlumno().get(s.id!) ?? 0;
+      const cell = row.getCell(2 + numFechas);
+      cell.value = `${porc}%`;
+      cell.font = {
+        bold: true,
+        color: { argb: porc >= 90 ? 'FF006400' : porc >= 75 ? 'FF8B8000' : 'FFDC143C' }
+      };
+    });
+
+    // Auto tamaño columnas
+    sheet.columns.forEach(col => {
+      let max = 10;
+      col.eachCell?.({ includeEmpty: true }, cell => {
+        const len = cell.value ? String(cell.value).length : 10;
+        if (len > max) max = len;
+      });
+      col.width = max + 3;
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const fileName = `Asistencias_${this.courseId()}_${this.hoyFormateado().replace(/ /g, '_')}.xlsx`;
+    saveAs(new Blob([buffer]), fileName);
   }
 }
-
