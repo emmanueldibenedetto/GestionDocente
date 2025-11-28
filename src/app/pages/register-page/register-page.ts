@@ -2,14 +2,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth-service';
 import { celularValidator } from '../../validators/cell-validator/cell-validator';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register-page.html',
   styleUrls: ['./register-page.css']
 })
@@ -42,6 +42,7 @@ export class RegisterPage
 onSubmit() {
   this.submitted = true;
   this.errorMessage.set(null);
+  this.message.set(null);
 
   if (this.form.invalid) return;
 
@@ -64,12 +65,16 @@ onSubmit() {
     next: (created) => {
       console.log('✅ Profesor creado:', created);
       this.loading.set(false);
-      this.router.navigate(['/auth/login']);
+      this.message.set(`¡Registro exitoso! Se ha enviado un email de verificación a ${email}. Por favor, revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta.`);
+      // Limpiar el formulario
+      this.form.reset();
+      this.submitted = false;
     },
     error: (err) => {
       console.error('❌ Error al registrar profesor:', err);
       this.loading.set(false);
-      this.errorMessage.set('Error al registrar el profesor.');
+      const errorMsg = err?.error?.error || 'Error al registrar el profesor.';
+      this.errorMessage.set(errorMsg);
     }
   });
 }

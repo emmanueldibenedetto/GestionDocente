@@ -186,5 +186,37 @@ export class CourseGradesComponent implements OnInit {
       error: () => this.error.set('No se pudo eliminar la evaluación')
     });
   }
+
+  // enviar notas por email
+  sendGradesByEmail(evaluationId: number) {
+    if (!confirm('¿Enviar las notas de esta evaluación por email a todos los alumnos?')) {
+      return;
+    }
+
+    this.error.set(null);
+    this.errorMessage.set(null);
+
+    this.evaluationService.sendGradesByEmail(evaluationId).subscribe({
+      next: (response) => {
+        console.log('✅ Notas enviadas por email:', response);
+        alert('Notas enviadas por email exitosamente a todos los alumnos.');
+      },
+      error: (err) => {
+        console.error('❌ Error al enviar notas por email:', err);
+        let errorMsg = 'No se pudieron enviar las notas por email';
+        
+        if (err.error?.error) {
+          errorMsg = err.error.error;
+        } else if (err.status === 404) {
+          errorMsg = 'La evaluación no existe.';
+        } else if (err.status === 0) {
+          errorMsg = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo.';
+        }
+        
+        this.errorMessage.set(errorMsg);
+        alert('Error: ' + errorMsg);
+      }
+    });
+  }
 }
 

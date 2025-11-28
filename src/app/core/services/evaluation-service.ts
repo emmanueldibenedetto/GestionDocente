@@ -22,4 +22,8 @@ export class EvaluationService {
   deleteEvaluation(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  sendGradesByEmail(evaluationId: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/${evaluationId}/send-grades`, {});
+  }
 }

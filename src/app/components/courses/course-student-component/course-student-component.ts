@@ -35,7 +35,7 @@ export class CourseStudentComponent implements OnInit
     firstName: ['', Validators.required],
     lastName: [''],
     cel: ['', this.celularValidator.bind(this)],
-    email: ['', Validators.email],
+    email: ['', [Validators.required, Validators.email]],
     document: ['', Validators.maxLength(20)],
   });
 

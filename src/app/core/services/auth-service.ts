@@ -145,4 +145,12 @@ export class AuthService {
       })
     );
   }
+
+  // --- VERIFY EMAIL ---
+  verifyEmail(token: string): Observable<{ message: string; verified: boolean }> {
+    return this.http.post<{ message: string; verified: boolean }>(
+      `${this.BASE_URL}${API_CONFIG.AUTH.VERIFY_EMAIL}`,
+      { token }
+    );
+  }
 }

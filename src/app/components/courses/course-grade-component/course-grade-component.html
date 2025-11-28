@@ -43,7 +43,12 @@
             <th class="eval-header">
               <div class="eval-title">{{ ev.nombre }}</div>
               <div class="eval-date">{{ ev.date }}</div>
-              <button class="del-ev" (click)="removeEvaluation(ev.id!)">🗑</button>
+              <div class="eval-actions">
+                <button class="send-email-btn" (click)="sendGradesByEmail(ev.id!)" title="Enviar notas por email">
+                  📧 Enviar
+                </button>
+                <button class="del-ev" (click)="removeEvaluation(ev.id!)" title="Eliminar evaluación">🗑</button>
+              </div>
             </th>
           }
         </tr>
@@ -52,7 +57,7 @@
       <tbody>
         @for (st of students(); track st.id) {
           <tr>
-            <td class="sticky-col name-cell">{{ st.lastName }}, {{ st.firstName }}, {{st.cel}}</td>
+            <td class="sticky-col name-cell">{{ st.lastName }}, {{ st.firstName }}, {{st.email}}</td>
 
             @for (ev of evaluations(); track ev.id) {
               <td>

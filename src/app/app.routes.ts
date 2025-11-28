@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { RegisterPage } from './pages/register-page/register-page';
 import { LoginPage } from './pages/login-page/login-page';
+import { VerifyEmailPage } from './pages/verify-email-page/verify-email-page';
 import { CoursesPage } from './pages/courses/courses-page/courses-page';
 import { CourseEditPage } from './pages/courses/course-edit-page/course-edit-page';
 import { CourseCreatePage } from './pages/courses/course-create-page/course-create-page';
@@ -16,6 +17,7 @@ export const routes: Routes = [
     { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
     { path: 'auth/login', component: LoginPage },
     { path: 'auth/register', component: RegisterPage },
+    { path: 'auth/verify-email', component: VerifyEmailPage },
     
     // Rutas protegidas (requieren autenticación y rol PROFESSOR)
     { 

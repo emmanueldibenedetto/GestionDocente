@@ -20,22 +20,27 @@
     </div>
     <div class="form-field-inline">
       <input 
+        type="email" 
+        placeholder="Email *" 
+        formControlName="email"
+        required
+        [class.invalid]="submitted() && form.controls['email'].invalid">
+      @if (submitted() && form.controls['email'].invalid) {
+        @if (form.controls['email'].errors?.['required']) {
+          <small class="field-error">Email obligatorio</small>
+        } @else if (form.controls['email'].errors?.['email']) {
+          <small class="field-error">Formato de email inválido</small>
+        }
+      }
+    </div>
+    <div class="form-field-inline">
+      <input 
         type="text" 
         placeholder="Celular (10-15 dígitos)" 
         formControlName="cel"
         [class.invalid]="submitted() && form.controls['cel'].invalid">
       @if (submitted() && form.controls['cel'].invalid) {
         <small class="field-error">10-15 dígitos numéricos</small>
-      }
-    </div>
-    <div class="form-field-inline">
-      <input 
-        type="email" 
-        placeholder="Email" 
-        formControlName="email"
-        [class.invalid]="submitted() && form.controls['email'].invalid">
-      @if (submitted() && form.controls['email'].invalid) {
-        <small class="field-error">Formato de email inválido</small>
       }
     </div>
     <div class="form-field-inline">

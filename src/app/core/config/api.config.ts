@@ -9,7 +9,8 @@ export const API_CONFIG = {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
-    ME: '/auth/me'
+    ME: '/auth/me',
+    VERIFY_EMAIL: '/auth/verify-email'
   },
   
   PROFESSORS: {

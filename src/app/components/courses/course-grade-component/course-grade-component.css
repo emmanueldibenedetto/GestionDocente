@@ -63,7 +63,37 @@ th.eval-header { position:relative; min-width:120px; }
 
 .eval-title { font-weight:600; }
 .eval-date { font-size:0.8rem; color:#666; }
-.del-ev { position:absolute; top:6px; right:6px; background:transparent; border:none; cursor:pointer; }
+.eval-actions { 
+  display: flex; 
+  gap: 4px; 
+  margin-top: 4px; 
+  justify-content: center;
+  align-items: center;
+}
+.send-email-btn { 
+  padding: 4px 8px; 
+  border-radius: 4px; 
+  border: none; 
+  background: #28a745; 
+  color: white; 
+  cursor: pointer; 
+  font-size: 11px;
+  transition: background 0.2s ease;
+}
+.send-email-btn:hover { 
+  background: #218838; 
+}
+.del-ev { 
+  padding: 4px 6px;
+  background: transparent; 
+  border: none; 
+  cursor: pointer;
+  font-size: 14px;
+  transition: opacity 0.2s ease;
+}
+.del-ev:hover {
+  opacity: 0.7;
+}
 
 input[type="number"].grade-input { 
   width:64px; 

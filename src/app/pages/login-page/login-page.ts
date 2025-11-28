@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth-service';
-import { Role } from '../../core/enums/roles';
+import { Role } from '../../enums/roles';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';

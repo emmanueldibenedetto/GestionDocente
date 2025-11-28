@@ -45,9 +45,11 @@ export class App
   private updateHeaderVisibility() {
     const currentRoute = this.router.url;
     const isAuthenticated = this.authService.isAuthenticated();
-    const isAuthRoute = currentRoute.includes('/auth/login') || currentRoute.includes('/auth/register');
+    const isAuthRoute = currentRoute.includes('/auth/login') || 
+                       currentRoute.includes('/auth/register') || 
+                       currentRoute.includes('/auth/verify-email');
     
-    // Mostrar header solo si está autenticado y NO está en login/register
+    // Mostrar header solo si está autenticado y NO está en login/register/verify-email
     this.showHeader.set(isAuthenticated && !isAuthRoute);
   }
 
