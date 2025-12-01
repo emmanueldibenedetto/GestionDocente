@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Grade } from '../models/grade';
+import { StudentGroupedAverages } from '../models/grouped-average';
 import { Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api.config';
 
@@ -30,9 +31,29 @@ export class GradeService {
     return this.http.get<any[]>(`${this.BASE_URL}${API_CONFIG.GRADES.AVERAGES}/${courseId}/averages`);
   }
 
-  getStudentAverage(studentId: number, courseId: number): Observable<{ average: number | null; studentId: number; courseId: number; message?: string }> {
-    return this.http.get<{ average: number | null; studentId: number; courseId: number; message?: string }>(
-      `${this.BASE_URL}${API_CONFIG.GRADES.STUDENT_AVERAGE}/${studentId}/course/${courseId}/average`
+  getStudentAverage(studentId: number, courseId: number, subjectId?: number): Observable<{ average: number | null; studentId: number; courseId: number; message?: string }> {
+    let url = `${this.BASE_URL}${API_CONFIG.GRADES.STUDENT_AVERAGE}/${studentId}/course/${courseId}/average`;
+    if (subjectId) {
+      url += `?subjectId=${subjectId}`;
+    }
+    return this.http.get<{ average: number | null; studentId: number; courseId: number; message?: string }>(url);
+  }
+
+  getGroupedAverages(studentId: number, courseId: number): Observable<StudentGroupedAverages> {
+    return this.http.get<StudentGroupedAverages>(
+      `${this.BASE_URL}${API_CONFIG.GRADES.STUDENT_GROUPED_AVERAGES}/${studentId}/course/${courseId}/grouped-averages`
     );
+  }
+
+  getGroupedAveragesByCourse(courseId: number): Observable<StudentGroupedAverages[]> {
+    return this.http.get<StudentGroupedAverages[]>(
+      `${this.BASE_URL}${API_CONFIG.GRADES.GROUPED_AVERAGES}/${courseId}/grouped-averages`
+    );
+  }
+
+  exportGradesToExcel(courseId: number): Observable<Blob> {
+    // Este método se implementará en el frontend usando exceljs
+    // Por ahora retornamos un Observable vacío
+    throw new Error('Not implemented yet');
   }
 }

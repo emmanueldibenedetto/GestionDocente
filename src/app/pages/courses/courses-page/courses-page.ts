@@ -1,5 +1,5 @@
-import { Component, signal, inject, effect } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, signal, inject, effect, HostListener } from '@angular/core';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { CourseService } from '../../../core/services/course-service';
 import { AuthService } from '../../../core/services/auth-service';
 import { Course } from '../../../core/models/course';
@@ -16,11 +16,21 @@ export class CoursesPage {
   private courseService = inject(CourseService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   courses = signal<Course[]>([]);
   errorMessage = signal('');
+  searchQuery = signal('');
+  showArchived = signal(false);
+  openMenuId = signal<number | null>(null);
 
   constructor() {
+    // Cargar query params de búsqueda si existen
+    this.route.queryParams.subscribe(params => {
+      if (params['search']) {
+        this.searchQuery.set(params['search']);
+      }
+    });
 
     // Se ejecuta cada vez que cambia currentProfessor
     effect(() => {
@@ -42,18 +52,121 @@ export class CoursesPage {
 
   loadCourses(professorId: number) {
     console.log('📚 Cargando cursos para profesor ID:', professorId);
-    // El backend filtra automáticamente por el profesor del JWT
-    // No necesitamos pasar el professorId como parámetro
-    this.courseService.getCourses().subscribe({
-      next: (data) => {
-        console.log('✅ Cursos cargados:', data);
-        this.courses.set(data);
+    const query = this.searchQuery().trim();
+    const archived = this.showArchived();
+    
+    if (query) {
+      this.courseService.searchCourses(query, archived).subscribe({
+        next: (data) => {
+          console.log('✅ Cursos cargados:', data);
+          this.courses.set(data);
+          this.errorMessage.set('');
+        },
+        error: (err) => {
+          console.error('❌ Error al cargar cursos:', err);
+          this.errorMessage.set("Error al cargar cursos.");
+          this.courses.set([]);
+        }
+      });
+    } else if (archived) {
+      this.courseService.getArchivedCourses().subscribe({
+        next: (data) => {
+          console.log('✅ Cursos archivados cargados:', data);
+          this.courses.set(data);
+          this.errorMessage.set('');
+        },
+        error: (err) => {
+          console.error('❌ Error al cargar cursos archivados:', err);
+          this.errorMessage.set("Error al cargar cursos archivados.");
+          this.courses.set([]);
+        }
+      });
+    } else {
+      this.courseService.getCourses().subscribe({
+        next: (data) => {
+          console.log('✅ Cursos cargados:', data);
+          this.courses.set(data);
+          this.errorMessage.set('');
+        },
+        error: (err) => {
+          console.error('❌ Error al cargar cursos:', err);
+          this.errorMessage.set("Error al cargar cursos.");
+          this.courses.set([]);
+        }
+      });
+    }
+  }
+
+  onSearchChange(query: string) {
+    this.searchQuery.set(query);
+    const professor = this.authService.currentProfessor();
+    if (professor?.id) {
+      this.loadCourses(professor.id);
+    }
+  }
+
+  toggleArchived() {
+    this.showArchived.update(v => !v);
+    const professor = this.authService.currentProfessor();
+    if (professor?.id) {
+      this.loadCourses(professor.id);
+    }
+  }
+
+  goToArchived() {
+    this.router.navigate(['/courses/archived']);
+  }
+
+  toggleCourseMenu(courseId: number) {
+    if (this.openMenuId() === courseId) {
+      this.openMenuId.set(null);
+    } else {
+      this.openMenuId.set(courseId);
+    }
+  }
+
+  closeMenu() {
+    this.openMenuId.set(null);
+  }
+
+  archiveCourse(id: number) {
+    if (!confirm('¿Archivar este curso? No se eliminará, pero dejará de aparecer en la lista principal.')) return;
+    
+    this.courseService.archiveCourse(id).subscribe({
+      next: () => {
+        const professor = this.authService.currentProfessor();
+        if (professor?.id) {
+          this.loadCourses(professor.id);
+        }
         this.errorMessage.set('');
       },
       error: (err) => {
-        console.error('❌ Error al cargar cursos:', err);
-        this.errorMessage.set("Error al cargar cursos.");
-        this.courses.set([]);
+        console.error('Error al archivar curso:', err);
+        this.errorMessage.set('Error al archivar el curso.');
+      }
+    });
+  }
+
+  duplicateCourse(id: number) {
+    if (!confirm('¿Crear una copia de este curso? Se copiarán los estudiantes, pero no los tipos de evaluación ni las notas.')) return;
+    
+    this.courseService.duplicateCourse(id, {
+      copyStudents: true,
+      copyEvaluationTypes: false,
+      copyEvaluations: false,
+      copySchedules: true
+    }).subscribe({
+      next: (response) => {
+        alert(`Curso duplicado exitosamente. Nuevo curso: ${response.newCourseName}`);
+        const professor = this.authService.currentProfessor();
+        if (professor?.id) {
+          this.loadCourses(professor.id);
+        }
+        this.errorMessage.set('');
+      },
+      error: (err) => {
+        console.error('Error al duplicar curso:', err);
+        this.errorMessage.set('Error al duplicar el curso.');
       }
     });
   }
@@ -95,11 +208,16 @@ export class CoursesPage {
     });
   }
 
-  goToCreate() {
-    this.router.navigate(['/course/create']);
-  }
-
   editCourse(id: number) {
     this.router.navigate(['/course/edit', id]);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    // Si el click no es dentro del menú o el botón del menú, cerrar el menú
+    if (!target.closest('.course-menu-container') && !target.closest('.course-menu-btn')) {
+      this.closeMenu();
+    }
   }
 }

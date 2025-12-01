@@ -25,7 +25,8 @@ export const API_CONFIG = {
   
   STUDENTS: {
     BASE: '/students',
-    BY_COURSE: '/students/course'
+    BY_COURSE: '/students/course',
+    IMPORT: '/students/import'
   },
   
   EVALUATIONS: {
@@ -33,12 +34,44 @@ export const API_CONFIG = {
     BY_COURSE: '/evaluations/course'
   },
   
+  EVALUATION_TYPES: {
+    BASE: '/evaluation-types',
+    BY_COURSE: '/evaluation-types/course'
+  },
+  
   GRADES: {
     BASE: '/grades',
     BY_COURSE: '/grades/course',
     BY_EVALUATION: '/grades/evaluation',
     AVERAGES: '/grades',
-    STUDENT_AVERAGE: '/grades/student'
+    STUDENT_AVERAGE: '/grades/student',
+    GROUPED_AVERAGES: '/grades/course',
+    STUDENT_GROUPED_AVERAGES: '/grades/student'
+  },
+  
+  EMAIL_TEMPLATES: {
+    BASE: '/email-templates'
+  },
+  
+  GRADE_SCALES: {
+    BASE: '/grade-scales',
+    AVAILABLE: '/grade-scales/evaluations'
+  },
+  
+  COURSE_SCHEDULES: {
+    BASE: '/courses',
+    CURRENT_REDIRECT: '/courses/current-schedule-redirect'
+  },
+  
+  ATTENDANCES: {
+    BASE: '/attendances',
+    AVERAGES: '/attendances/course',
+    BULK: '/attendances/bulk'
+  },
+  
+  SUBJECTS: {
+    BASE: '/subjects',
+    BY_COURSE: '/courses'
   }
 };
 

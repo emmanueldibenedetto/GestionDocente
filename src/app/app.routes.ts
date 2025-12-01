@@ -8,6 +8,8 @@ import { CourseCreatePage } from './pages/courses/course-create-page/course-crea
 import { CourseDetailPage } from './pages/courses/course-detail-page/course-detail-page';
 import { EditProfessorPage } from './pages/edit-professor-page/edit-professor-page';
 import { ProfessorsListPage } from './pages/professors-list-page/professors-list-page';
+import { ArchivedCoursesPage } from './pages/courses/archived-courses-page/archived-courses-page';
+import { GradeScalesPage } from './pages/grade-scales-page/grade-scales-page';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { Role } from './enums/roles';
@@ -41,6 +43,18 @@ export const routes: Routes = [
     { 
         path: 'course/detail/:id', 
         component: CourseDetailPage,
+        canActivate: [authGuard, roleGuard],
+        data: { roles: [Role.PROFESSOR] }
+    },
+    { 
+        path: 'courses/archived', 
+        component: ArchivedCoursesPage,
+        canActivate: [authGuard, roleGuard],
+        data: { roles: [Role.PROFESSOR] }
+    },
+    { 
+        path: 'grade-scales', 
+        component: GradeScalesPage,
         canActivate: [authGuard, roleGuard],
         data: { roles: [Role.PROFESSOR] }
     },

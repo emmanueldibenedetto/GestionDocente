@@ -2,7 +2,7 @@
   <header>
     <app-nav-component
       [userName]="currentUser()?.name ?? null"
-      [userImage]="currentUser()?.photoUrl || ''"
+      [userImage]="getUserImage()"
       [userRole]="currentUser()?.role">
     </app-nav-component>
   </header>

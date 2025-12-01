@@ -72,4 +72,9 @@ export class StudentService {
       })
     );
   }
+
+  importStudents(courseId: number, students: StudentCreate[]): Observable<{ message: string; count: number; students: Student[] }> {
+    const url = `${this.BASE_URL}${API_CONFIG.STUDENTS.IMPORT}/${courseId}`;
+    return this.http.post<{ message: string; count: number; students: Student[] }>(url, students);
+  }
 }

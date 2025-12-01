@@ -4,6 +4,7 @@ export interface Grade
   courseId: number;
   studentId: number;
   evaluationId: number;
-  grade: number; // Backend requiere @NotNull, no puede ser null
+  grade?: number | null; // Opcional si hay gradeValue (notas categóricas)
+  gradeValue?: string | null; // Para notas categóricas (ej: "aprobado", "distinguido")
 }
 

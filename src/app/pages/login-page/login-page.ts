@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth-service';
 import { Role } from '../../enums/roles';
+import { CourseScheduleService } from '../../core/services/course-schedule-service';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -32,6 +33,7 @@ export class LoginPage {
   private auth = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private scheduleService = inject(CourseScheduleService);
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -70,16 +72,44 @@ export class LoginPage {
       // Obtener URL de retorno si existe (desde query params del guard)
       let returnUrl = this.route.snapshot.queryParams['returnUrl'];
       
-      // Si no hay returnUrl, redirigir según el rol
-      if (!returnUrl) {
-        if (userRole === Role.ADMIN) {
-          returnUrl = '/professors/list'; // Admins van a la lista de profesores
-        } else {
-          returnUrl = '/course/list'; // Profesores van a sus cursos
-        }
+      // Si hay returnUrl explícito (por ejemplo, desde un guard), usarlo directamente
+      if (returnUrl) {
+        this.router.navigate([returnUrl]);
+        return;
       }
       
-      this.router.navigate([returnUrl]);
+      // Si es ADMIN, redirigir a la lista de profesores
+      if (userRole === Role.ADMIN) {
+        this.router.navigate(['/professors/list']);
+        return;
+      }
+      
+      // Para PROFESSOR: verificar si hay un curso con horario activo
+      // Solo al iniciar sesión, después puede navegar libremente
+      this.scheduleService.getCurrentScheduleRedirect().subscribe({
+        next: (redirect) => {
+          if (redirect.hasCurrentCourse && redirect.courseId) {
+            // Redirigir al curso que tiene horario activo, con la materia correspondiente
+            console.log(`📅 Redirigiendo al curso activo: ${redirect.courseName} (ID: ${redirect.courseId}, Materia: ${redirect.subjectId || 'sin materia'})`);
+            
+            // Construir ruta con query params para la materia
+            const navigationExtras: any = {};
+            if (redirect.subjectId) {
+              navigationExtras.queryParams = { subjectId: redirect.subjectId };
+            }
+            
+            this.router.navigate(['/course/detail', redirect.courseId], navigationExtras);
+          } else {
+            // No hay curso activo, ir a la lista de cursos
+            this.router.navigate(['/course/list']);
+          }
+        },
+        error: (err) => {
+          // Si hay error al obtener el curso activo, ir a la lista de cursos
+          console.warn('⚠️ No se pudo obtener el curso activo, redirigiendo a lista de cursos:', err);
+          this.router.navigate(['/course/list']);
+        }
+      });
     },
     error: (err) => {
       this.loading.set(false);

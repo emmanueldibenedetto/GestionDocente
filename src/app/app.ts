@@ -3,6 +3,7 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { FooterComponent } from './components/footers/footer-component/footer-component';
 import { NavComponent } from './components/headers/nav-component/nav-component';
 import { AuthService } from './core/services/auth-service';
+import { ThemeService } from './core/services/theme-service';
 import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 
@@ -18,6 +19,7 @@ export class App
 
   private authService = inject(AuthService);
   private router = inject(Router);
+  private themeService = inject(ThemeService); // Inicializar servicio de tema
 
   // SIGNAL que el template usa
   currentUser = signal(this.authService.currentProfessor());
@@ -51,6 +53,15 @@ export class App
     
     // Mostrar header solo si está autenticado y NO está en login/register/verify-email
     this.showHeader.set(isAuthenticated && !isAuthRoute);
+  }
+
+  getUserImage(): string {
+    const photoUrl = this.currentUser()?.photoUrl;
+    // Si no hay photoUrl o es null/vacío, usar la imagen por defecto
+    if (!photoUrl || photoUrl.trim() === '' || photoUrl.includes('default-profile')) {
+      return '/assets/default-profile.svg';
+    }
+    return photoUrl;
   }
 
 }

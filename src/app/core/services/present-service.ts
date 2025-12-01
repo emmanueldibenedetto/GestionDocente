@@ -71,5 +71,17 @@ export class PresentService {
       });
     });
   }
+
+  getAttendanceAverages(courseId: number, subjectId?: number): Observable<Array<{ studentId: number; firstName: string; lastName: string; attendancePercentage: number | null; totalDays: number; presentDays: number; absentDays: number }>> {
+    let url = `${this.BASE_URL}${API_CONFIG.ATTENDANCES.AVERAGES}/${courseId}/averages`;
+    if (subjectId) {
+      url += `?subjectId=${subjectId}`;
+    }
+    return this.http.get<Array<{ studentId: number; firstName: string; lastName: string; attendancePercentage: number | null; totalDays: number; presentDays: number; absentDays: number }>>(url);
+  }
+
+  saveAttendancesBulk(attendances: Present[]): Observable<Present[]> {
+    return this.http.post<Present[]>(`${this.BASE_URL}${API_CONFIG.ATTENDANCES.BULK}`, attendances);
+  }
 }
 

@@ -1,70 +1,34 @@
 
-<h3>Alumnos</h3>
+<div class="students-header">
+  <h3>Alumnos</h3>
+</div>
 
-<form [formGroup]="form" (ngSubmit)="editingStudent() ? updateStudent() : addStudent()" class="student-form">
-
-  <div class="form-row">
-    <div class="form-field-inline">
-      <input 
-        type="text" 
-        placeholder="Nombre *" 
-        formControlName="firstName" 
-        required
-        [class.invalid]="submitted() && form.controls['firstName'].invalid">
-      @if (submitted() && form.controls['firstName'].invalid) {
-        <small class="field-error">Nombre obligatorio</small>
-      }
-    </div>
-    <div class="form-field-inline">
-      <input type="text" placeholder="Apellido" formControlName="lastName">
-    </div>
-    <div class="form-field-inline">
-      <input 
-        type="email" 
-        placeholder="Email *" 
-        formControlName="email"
-        required
-        [class.invalid]="submitted() && form.controls['email'].invalid">
-      @if (submitted() && form.controls['email'].invalid) {
-        @if (form.controls['email'].errors?.['required']) {
-          <small class="field-error">Email obligatorio</small>
-        } @else if (form.controls['email'].errors?.['email']) {
-          <small class="field-error">Formato de email inválido</small>
-        }
-      }
-    </div>
-    <div class="form-field-inline">
-      <input 
-        type="text" 
-        placeholder="Celular (10-15 dígitos)" 
-        formControlName="cel"
-        [class.invalid]="submitted() && form.controls['cel'].invalid">
-      @if (submitted() && form.controls['cel'].invalid) {
-        <small class="field-error">10-15 dígitos numéricos</small>
-      }
-    </div>
-    <div class="form-field-inline">
-      <input 
-        type="text" 
-        placeholder="Documento" 
-        formControlName="document"
-        [class.invalid]="submitted() && form.controls['document'].invalid">
-      @if (submitted() && form.controls['document'].invalid) {
-        <small class="field-error">Máximo 20 caracteres</small>
-      }
-    </div>
+<div class="students-toolbar">
+  <div class="students-search">
+    <input
+      type="text"
+      placeholder="Buscar por nombre, apellido o email..."
+      (input)="onSearchChange($any($event.target).value)"
+    />
   </div>
 
-  <div class="form-actions">
-    @if (editingStudent()) {
-      <button type="submit">💾 Guardar Cambios</button>
-      <button type="button" (click)="cancelEdit()">❌ Cancelar</button>
-    } @else {
-      <button type="submit">➕ Agregar Alumno</button>
-    }
+  <div class="students-sort">
+    <label>Ordenar por:</label>
+    <select [value]="sortField()" (change)="setSortField($any($event.target).value)">
+      <option value="lastFirst">Apellido, Nombre</option>
+      <option value="firstLast">Nombre, Apellido</option>
+      <option value="grade">Promedio de notas</option>
+      <option value="attendance">% Asistencia</option>
+    </select>
+    <button type="button" class="sort-direction-btn" (click)="toggleSortDirection()" [title]="sortDirection() === 'asc' ? 'Ascendente' : 'Descendente'">
+      {{ sortDirection() === 'asc' ? '↑' : '↓' }}
+    </button>
   </div>
 
-</form>
+  <button type="button" class="btn-add-student" (click)="showAddForm()">
+    ➕ Agregar Alumno
+  </button>
+</div>
 
 <table class="students-table">
   <thead>
@@ -75,29 +39,184 @@
       <th>Email</th>
       <th>Documento</th>
       <th>Promedio</th>
+      <th>% Asistencia</th>
       <th>Acciones</th>
     </tr>
   </thead>
   <tbody>
-    @for (s of students(); track s.id) {
-      <tr class="student-row">
-        <td data-label="Nombre">{{ s.firstName }}</td>
-        <td data-label="Apellido">{{ s.lastName || '-' }}</td>
-        <td data-label="Celular">{{ s.cel || '-' }}</td>
-        <td data-label="Email">{{ s.email || '-' }}</td>
-        <td data-label="Documento">{{ s.document || '-' }}</td>
-        <td class="average-cell" data-label="Promedio">
-          @if (studentAverages().has(s.id!)) {
-            <span class="average-value">{{ studentAverages().get(s.id!)!.toFixed(2) }}</span>
-          } @else {
-            <span class="average-loading">-</span>
+    @if (showForm() && !editingStudent()) {
+      <tr class="form-row">
+        <td data-label="Nombre">
+          <input 
+            type="text" 
+            placeholder="Nombre *" 
+            [formControl]="form.controls.firstName" 
+            required
+            class="table-input"
+            (keyup.enter)="addStudent()"
+            [class.invalid]="submitted() && form.controls['firstName'].invalid">
+          @if (submitted() && form.controls['firstName'].invalid) {
+            <small class="field-error-inline">Requerido</small>
           }
         </td>
-        <td class="actions-cell" data-label="">
-          <button class="btn-edit-student" (click)="editStudent(s)">✏️ Editar</button>
-          <button class="btn-delete-student" (click)="deleteStudent(s.id!)">🗑 Eliminar</button>
+        <td data-label="Apellido">
+          <input 
+            type="text" 
+            placeholder="Apellido" 
+            [formControl]="form.controls.lastName"
+            class="table-input"
+            (keyup.enter)="addStudent()">
+        </td>
+        <td data-label="Celular">
+          <input 
+            type="text" 
+            placeholder="Celular" 
+            [formControl]="form.controls.cel"
+            class="table-input"
+            (keyup.enter)="addStudent()"
+            [class.invalid]="submitted() && form.controls['cel'].invalid">
+          @if (submitted() && form.controls['cel'].invalid) {
+            <small class="field-error-inline">Inválido</small>
+          }
+        </td>
+        <td data-label="Email">
+          <input 
+            type="email" 
+            placeholder="Email *" 
+            [formControl]="form.controls.email"
+            required
+            class="table-input"
+            (keyup.enter)="addStudent()"
+            [class.invalid]="submitted() && form.controls['email'].invalid">
+          @if (submitted() && form.controls['email'].invalid) {
+            <small class="field-error-inline">Requerido</small>
+          }
+        </td>
+        <td data-label="Documento">
+          <input 
+            type="text" 
+            placeholder="Documento" 
+            [formControl]="form.controls.document"
+            class="table-input"
+            (keyup.enter)="addStudent()"
+            [class.invalid]="submitted() && form.controls['document'].invalid">
+          @if (submitted() && form.controls['document'].invalid) {
+            <small class="field-error-inline">Inválido</small>
+          }
+        </td>
+        <td class="average-cell" data-label="Promedio">-</td>
+        <td class="average-cell" data-label="% Asistencia">-</td>
+        <td class="actions-cell" data-label="Acciones">
+          <button type="button" class="btn-save-student" (click)="addStudent()">💾 Guardar</button>
+          <button type="button" class="btn-cancel-student" (click)="cancelEdit()">❌ Cancelar</button>
         </td>
       </tr>
+    }
+    @for (s of filteredStudents(); track s.id) {
+      @if (editingStudent()?.id === s.id) {
+        <tr class="form-row">
+          <td data-label="Nombre">
+            <input 
+              type="text" 
+              placeholder="Nombre *" 
+              [formControl]="form.controls.firstName" 
+              required
+              class="table-input"
+              (keyup.enter)="updateStudent()"
+              [class.invalid]="submitted() && form.controls['firstName'].invalid">
+            @if (submitted() && form.controls['firstName'].invalid) {
+              <small class="field-error-inline">Requerido</small>
+            }
+          </td>
+          <td data-label="Apellido">
+            <input 
+              type="text" 
+              placeholder="Apellido" 
+              [formControl]="form.controls.lastName"
+              class="table-input"
+              (keyup.enter)="updateStudent()">
+          </td>
+          <td data-label="Celular">
+            <input 
+              type="text" 
+              placeholder="Celular" 
+              [formControl]="form.controls.cel"
+              class="table-input"
+              (keyup.enter)="updateStudent()"
+              [class.invalid]="submitted() && form.controls['cel'].invalid">
+            @if (submitted() && form.controls['cel'].invalid) {
+              <small class="field-error-inline">Inválido</small>
+            }
+          </td>
+          <td data-label="Email">
+            <input 
+              type="email" 
+              placeholder="Email *" 
+              [formControl]="form.controls.email"
+              required
+              class="table-input"
+              (keyup.enter)="updateStudent()"
+              [class.invalid]="submitted() && form.controls['email'].invalid">
+            @if (submitted() && form.controls['email'].invalid) {
+              <small class="field-error-inline">Requerido</small>
+            }
+          </td>
+          <td data-label="Documento">
+            <input 
+              type="text" 
+              placeholder="Documento" 
+              [formControl]="form.controls.document"
+              class="table-input"
+              (keyup.enter)="updateStudent()"
+              [class.invalid]="submitted() && form.controls['document'].invalid">
+            @if (submitted() && form.controls['document'].invalid) {
+              <small class="field-error-inline">Inválido</small>
+            }
+          </td>
+          <td class="average-cell" data-label="Promedio">
+            @if (studentAverages().has(s.id!)) {
+              <span class="average-value">{{ studentAverages().get(s.id!)!.toFixed(2) }}</span>
+            } @else {
+              <span class="average-loading">-</span>
+            }
+          </td>
+          <td class="average-cell" data-label="% Asistencia">
+            <span class="average-value">{{ getAttendanceLabel(s.id!) }}</span>
+          </td>
+          <td class="actions-cell" data-label="Acciones">
+            <button type="button" class="btn-save-student" (click)="updateStudent()">💾 Guardar</button>
+            <button type="button" class="btn-cancel-student" (click)="cancelEdit()">❌ Cancelar</button>
+          </td>
+        </tr>
+      } @else {
+        <tr class="student-row">
+          <td data-label="Nombre">{{ s.firstName }}</td>
+          <td data-label="Apellido">{{ s.lastName || '-' }}</td>
+          <td data-label="Celular">{{ s.cel || '-' }}</td>
+          <td data-label="Email">
+            @if (s.email) {
+              <a [href]="'mailto:' + s.email" class="email-link">{{ s.email }}</a>
+            } @else {
+              -
+            }
+          </td>
+          <td data-label="Documento">{{ s.document || '-' }}</td>
+          <td class="average-cell" data-label="Promedio">
+            @if (studentAverages().has(s.id!)) {
+              <span class="average-value">{{ studentAverages().get(s.id!)!.toFixed(2) }}</span>
+            } @else {
+              <span class="average-loading">-</span>
+            }
+          </td>
+          <td class="average-cell" data-label="% Asistencia">
+            <span class="average-value">{{ getAttendanceLabel(s.id!) }}</span>
+          </td>
+          <td class="actions-cell" data-label="">
+            <button class="btn-edit-student" (click)="editStudent(s)">✏️ Editar</button>
+            <button class="btn-delete-student" (click)="deleteStudent(s.id!)">🗑 Eliminar</button>
+          </td>
+        </tr>
+      }
     }
   </tbody>
 </table>

@@ -43,6 +43,33 @@
     <span class="hamburger-icon">☰</span>
   </button>
 
+  <!-- Centro: Buscador y acciones (solo profesores) -->
+  @if (!isAdmin) {
+    <div class="nav-center">
+      <input 
+        type="text" 
+        placeholder="Buscar por nombre o escuela..." 
+        [value]="searchQuery()"
+        (input)="onSearchChange($any($event.target).value)"
+        class="nav-search-input"
+        (click)="$event.stopPropagation()"
+      />
+      <button class="nav-btn-archived" (click)="goToArchived($event); closeMobileMenu()">
+        📦 Archivados
+      </button>
+      <button class="nav-btn-scales" (click)="goToGradeScales($event); closeMobileMenu()">
+        📊 Tipos de Notas
+      </button>
+      <button class="nav-btn-theme" (click)="toggleTheme(); closeMobileMenu()" title="Cambiar tema">
+        @if (currentTheme() === 'light') {
+          🌙 Modo Oscuro
+        } @else {
+          ☀️ Modo Claro
+        }
+      </button>
+    </div>
+  }
+
   <!-- Lado derecho -->
   <div class="nav-links" [class.mobile-open]="mobileMenuOpen()">
     <!-- Solo profesores pueden ver cursos -->

@@ -54,9 +54,71 @@
         placeholder="Descripción del curso..."></textarea>
     </div>
 
+    <div class="form-field-group">
+      <h3>Notas de Aprobación y Habilitación (opcional)</h3>
+      <div class="form-field-row">
+        <div class="form-field">
+          <label for="approvalGrade">Nota de Aprobación (default)</label>
+          <input 
+            type="number" 
+            id="approvalGrade"
+            formControlName="approvalGrade"
+            min="0"
+            max="10"
+            step="0.1"
+            placeholder="Ej: 6.0"
+            [class.invalid]="submitted() && form.controls['approvalGrade'].invalid">
+          <small class="help-text">Nota mínima para aprobar (se usará como default para todas las evaluaciones)</small>
+        </div>
+        <div class="form-field">
+          <label for="qualificationGrade">Nota de Habilitación (default)</label>
+          <input 
+            type="number" 
+            id="qualificationGrade"
+            formControlName="qualificationGrade"
+            min="0"
+            max="10"
+            step="0.1"
+            placeholder="Ej: 4.0"
+            [class.invalid]="submitted() && form.controls['qualificationGrade'].invalid">
+          <small class="help-text">Nota mínima para habilitar examen (se usará como default para todas las evaluaciones)</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label>Importar estudiantes desde Excel (opcional)</label>
+      <div class="file-import-section">
+        <button type="button" (click)="openFilePicker()" class="btn-import" [disabled]="importing()">
+          @if (importing()) {
+            Importando...
+          } @else {
+            📄 Seleccionar archivo Excel
+          }
+        </button>
+        <input 
+          type="file" 
+          #fileInput
+          accept=".xlsx,.xls"
+          style="display: none"
+          (change)="onFileSelected($event)">
+        @if (selectedFileName()) {
+          <span class="file-name">{{ selectedFileName() }}</span>
+        }
+      </div>
+      <small class="help-text">
+        El archivo Excel debe tener columnas: <strong>Nombre</strong>, <strong>Apellido</strong>, <strong>Email</strong>, Cel, Documento. 
+        <strong>Nombre, Apellido y Email son obligatorias</strong>. Los emails deben tener formato válido.
+      </small>
+    </div>
+
     <div class="form-actions">
-      <button type="submit" [disabled]="form.invalid" class="btn-submit">
-        Guardar Curso
+      <button type="submit" [disabled]="form.invalid || importing()" class="btn-submit">
+        @if (importing()) {
+          Creando curso e importando estudiantes...
+        } @else {
+          Guardar Curso
+        }
       </button>
     </div>
   </form>

@@ -5,6 +5,7 @@ import { Student, StudentCreate } from '../../../core/models/student';
 import { Course } from '../../../core/models/course';
 import { CourseService } from '../../../core/services/course-service';
 import { GradeService } from '../../../core/services/grade-service';
+import { PresentService } from '../../../core/services/present-service';
 
 @Component({
   selector: 'app-course-students',
@@ -24,12 +25,19 @@ export class CourseStudentComponent implements OnInit
   private fb = inject(FormBuilder);
   private courseService = inject(CourseService);
   private gradeService = inject(GradeService);
+  private presentService = inject(PresentService);
 
   students = signal<Student[]>([]);
+  filteredStudents = signal<Student[]>([]);
+  searchTerm = signal<string>('');
+  sortField = signal<'lastFirst' | 'firstLast' | 'grade' | 'attendance'>('lastFirst');
+  sortDirection = signal<'asc' | 'desc'>('asc');
   errorMessage = signal<string | null>(null);
   editingStudent = signal<Student | null>(null);
   studentAverages = signal<Map<number, number>>(new Map());
+  attendanceAverages = signal<Map<number, number | null>>(new Map());
   submitted = signal(false);
+  showForm = signal(false);
 
   form = this.fb.nonNullable.group({
     firstName: ['', Validators.required],
@@ -61,6 +69,9 @@ export class CourseStudentComponent implements OnInit
         this.errorMessage.set(null);
         // Cargar promedios de todos los estudiantes
         this.loadAllAverages(students);
+        // Cargar promedios de asistencia
+        this.loadAttendanceAverages();
+        this.applyFilterAndSort();
       },
       error: (err) => {
         console.error('❌ Error al cargar alumnos:', err);
@@ -108,6 +119,127 @@ export class CourseStudentComponent implements OnInit
   // Método público para refrescar promedios (llamado desde el componente padre)
   refreshAverages() {
     this.loadAllAverages(this.students());
+    this.loadAttendanceAverages();
+    this.applyFilterAndSort();
+  }
+
+  // Método público para refrescar solo promedios de asistencia
+  refreshAttendanceAverages() {
+    this.loadAttendanceAverages();
+  }
+
+  private loadAttendanceAverages() {
+    const map = new Map<number, number | null>();
+    this.presentService.getAttendanceAverages(this.courseId).subscribe({
+      next: (data: Array<{ studentId: number; attendancePercentage: number | null }>) => {
+        data.forEach(item => {
+          if (item.studentId != null) {
+            map.set(item.studentId, item.attendancePercentage);
+          }
+        });
+        this.attendanceAverages.set(map);
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar promedios de asistencia:', err);
+      }
+    });
+  }
+
+  getAttendanceLabel(studentId: number): string {
+    const val = this.attendanceAverages().get(studentId);
+    if (val === null || val === undefined) return '-';
+    return `${Math.round(val)}%`;
+  }
+
+  onSearchChange(value: string) {
+    this.searchTerm.set(value);
+    this.applyFilterAndSort();
+  }
+
+  setSortField(field: 'lastFirst' | 'firstLast' | 'grade' | 'attendance') {
+    this.sortField.set(field);
+    this.applyFilterAndSort();
+  }
+
+  toggleSortDirection() {
+    this.sortDirection.update(v => (v === 'asc' ? 'desc' : 'asc'));
+    this.applyFilterAndSort();
+  }
+
+  private applyFilterAndSort() {
+    const term = this.searchTerm().toLowerCase().trim();
+    let result = [...this.students()];
+
+    // Filtro por texto
+    if (term) {
+      result = result.filter(s => {
+        const fullNameLastFirst = `${s.lastName ?? ''} ${s.firstName ?? ''}`.toLowerCase();
+        const fullNameFirstLast = `${s.firstName ?? ''} ${s.lastName ?? ''}`.toLowerCase();
+        const email = (s.email ?? '').toLowerCase();
+        return (
+          fullNameLastFirst.includes(term) ||
+          fullNameFirstLast.includes(term) ||
+          email.includes(term)
+        );
+      });
+    }
+
+    // Orden
+    const direction = this.sortDirection();
+    const field = this.sortField();
+
+    result.sort((a, b) => {
+      const dir = direction === 'asc' ? 1 : -1;
+
+      const lastA = (a.lastName || '').toLowerCase();
+      const lastB = (b.lastName || '').toLowerCase();
+      const firstA = (a.firstName || '').toLowerCase();
+      const firstB = (b.firstName || '').toLowerCase();
+
+      if (field === 'lastFirst') {
+        const cmpLast = lastA.localeCompare(lastB);
+        if (cmpLast !== 0) return cmpLast * dir;
+        return firstA.localeCompare(firstB) * dir;
+      }
+
+      if (field === 'firstLast') {
+        const cmpFirst = firstA.localeCompare(firstB);
+        if (cmpFirst !== 0) return cmpFirst * dir;
+        return lastA.localeCompare(lastB) * dir;
+      }
+
+      if (field === 'grade') {
+        const avgMap = this.studentAverages();
+        const valA = avgMap.get(a.id!) ?? Number.NaN;
+        const valB = avgMap.get(b.id!) ?? Number.NaN;
+        const aIsNum = !Number.isNaN(valA);
+        const bIsNum = !Number.isNaN(valB);
+        if (aIsNum && bIsNum) {
+          return (valA - valB) * dir;
+        }
+        if (aIsNum) return -1 * dir;
+        if (bIsNum) return 1 * dir;
+        return 0;
+      }
+
+      if (field === 'attendance') {
+        const attMap = this.attendanceAverages();
+        const valA = attMap.get(a.id!) ?? Number.NaN;
+        const valB = attMap.get(b.id!) ?? Number.NaN;
+        const aIsNum = !Number.isNaN(valA);
+        const bIsNum = !Number.isNaN(valB);
+        if (aIsNum && bIsNum) {
+          return (valA - valB) * dir;
+        }
+        if (aIsNum) return -1 * dir;
+        if (bIsNum) return 1 * dir;
+        return 0;
+      }
+
+      return 0;
+    });
+
+    this.filteredStudents.set(result);
   }
 
   addStudent() {
@@ -140,8 +272,10 @@ export class CourseStudentComponent implements OnInit
     this.studentService.addStudentToCourse(newStudent).subscribe({
       next: (created) => {
         console.log('✅ Estudiante agregado exitosamente:', created);
-        this.students.update(current => [...current, created]);
+        // Recargar lista completa para asegurar sincronización
+        this.loadStudents();
         this.form.reset();
+        this.showForm.set(false);
         this.errorMessage.set(null);
         this.submitted.set(false);
 
@@ -208,6 +342,7 @@ export class CourseStudentComponent implements OnInit
 
   editStudent(student: Student) {
     this.editingStudent.set(student);
+    this.showForm.set(true);
     this.form.patchValue({
       firstName: student.firstName,
       lastName: student.lastName || '',
@@ -219,6 +354,15 @@ export class CourseStudentComponent implements OnInit
 
   cancelEdit() {
     this.editingStudent.set(null);
+    this.showForm.set(false);
+    this.form.reset();
+    this.submitted.set(false);
+    this.errorMessage.set(null);
+  }
+
+  showAddForm() {
+    this.editingStudent.set(null);
+    this.showForm.set(true);
     this.form.reset();
     this.submitted.set(false);
     this.errorMessage.set(null);
@@ -255,10 +399,10 @@ export class CourseStudentComponent implements OnInit
     this.studentService.updateStudent(studentId, updatedData).subscribe({
       next: (updated) => {
         console.log('✅ Estudiante actualizado exitosamente:', updated);
-        this.students.update(current => 
-          current.map(s => s.id === studentId ? updated : s)
-        );
+        // Recargar lista completa para asegurar sincronización
+        this.loadStudents();
         this.editingStudent.set(null);
+        this.showForm.set(false);
         this.form.reset();
         this.errorMessage.set(null);
         this.submitted.set(false);

@@ -26,4 +26,19 @@ export class EvaluationService {
   sendGradesByEmail(evaluationId: number): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}/${evaluationId}/send-grades`, {});
   }
+
+  updateEvaluation(id: number, evaluation: Partial<Evaluation>): Observable<Evaluation> {
+    return this.http.put<Evaluation>(`${this.apiUrl}/${id}`, evaluation);
+  }
+
+  sendGradesByEmailCustom(evaluationId: number, templateId?: number, customMessage?: string, useTemplate: boolean = true): Observable<{ message: string; emailsSent?: number; emailsFailed?: number }> {
+    return this.http.post<{ message: string; emailsSent?: number; emailsFailed?: number }>(
+      `${this.apiUrl}/${evaluationId}/send-grades-custom`,
+      { templateId, customMessage, useTemplate }
+    );
+  }
+
+  updateEvaluationGradeScale(evaluationId: number, gradeScaleId: number | null): Observable<Evaluation> {
+    return this.http.put<Evaluation>(`${this.apiUrl}/${evaluationId}/grade-scale`, { gradeScaleId });
+  }
 }

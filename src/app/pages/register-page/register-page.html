@@ -79,7 +79,7 @@
     <div class="success-message">
       <p>{{ message() }}</p>
       <p class="info-small">Después de verificar tu email, podrás iniciar sesión.</p>
-      <a routerLink="/auth/login" class="login-link">Ir al inicio de sesión</a>
+      <a [href]="getGmailUrl()" target="_blank" class="login-link">📧 Abrir mail</a>
     </div>
   }
 

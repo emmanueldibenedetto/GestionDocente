@@ -1,4 +1,4 @@
-import { Component, computed, input, OnInit, signal, inject } from '@angular/core';
+import { Component, computed, input, OnInit, effect, signal, inject, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import ExcelJS from 'exceljs';
@@ -7,6 +7,8 @@ import { saveAs } from 'file-saver';
 import { Student } from '../../../core/models/student';
 import { Present } from '../../../core/models/present';
 import { PresentService } from '../../../core/services/present-service';
+import { SubjectService } from '../../../core/services/subject-service';
+import { Subject } from '../../../core/models/subject';
 
 @Component({
   selector: 'app-course-attendance',
@@ -22,35 +24,98 @@ export class CourseAttendanceComponent implements OnInit {
   // ─────────────────────────────────────────────────────────────
   courseId = input.required<number>();
   students = input.required<Student[]>();
+  courseName = input<string>('');
+  subjectId = input<number | undefined>(); // ID de la materia para filtrar
+
+  // ─────────────────────────────────────────────────────────────
+  // OUTPUTS
+  // ─────────────────────────────────────────────────────────────
+  @Output() attendancesUpdated = new EventEmitter<void>();
+
+  private subjectIdInitialized = false;
+
+  constructor() {
+    // Efecto para recargar asistencias cuando cambia el subjectId (después del primer cambio)
+    effect(() => {
+      const subjectId = this.subjectId();
+      if (this.subjectIdInitialized && subjectId !== undefined) {
+        // Recargar datos cuando cambia la materia (solo después del primer cambio)
+        this.cargarDatos();
+      }
+      this.subjectIdInitialized = true;
+    });
+  }
 
   // ─────────────────────────────────────────────────────────────
   // Servicios
   // ─────────────────────────────────────────────────────────────
   private presentService = inject(PresentService);
+  private subjectService = inject(SubjectService);
 
   // ─────────────────────────────────────────────────────────────
   // Estado interno
   // ─────────────────────────────────────────────────────────────
   registros = signal<Present[]>([]);
+  subjects = signal<Subject[]>([]);
+  selectedDate = signal<string>(new Date().toISOString().split('T')[0]); // Fecha seleccionada para marcar asistencias
+  pendingAttendances = signal<Map<number, boolean>>(new Map()); // Asistencias pendientes de guardar para la fecha seleccionada
+  saving = signal(false);
+
+  // Registros filtrados por materia
+  filteredRegistros = computed(() => {
+    const subjectId = this.subjectId();
+    const registros = this.registros();
+    console.log('🔍 Filtrando registros - materia:', subjectId, 'total registros:', registros.length);
+    if (!subjectId) {
+      console.log('⚠️ No hay materia seleccionada, mostrando todas las asistencias');
+      return registros;
+    }
+    const filtered = registros.filter(r => r.subjectId === subjectId);
+    console.log('✅ Registros filtrados por materia', subjectId, ':', filtered.length);
+    return filtered;
+  });
 
   // ─────────────────────────────────────────────────────────────
   // Computed reactivos
   // ─────────────────────────────────────────────────────────────
 
   fechas = computed(() =>
-    [...new Set(this.registros().map(r => r.date))].sort()
+    [...new Set(this.filteredRegistros().map(r => r.date))].sort()
   );
 
   presenteMap = computed(() => {
     const map = new Map<string, Map<number, boolean>>();
 
-    this.registros().forEach(r => {
+    // Aplicar los registros guardados (filtrados por materia)
+    this.filteredRegistros().forEach(r => {
       if (!map.has(r.date)) map.set(r.date, new Map());
       map.get(r.date)!.set(r.studentId, r.present);
     });
 
     return map;
   });
+
+  // Asistencias para la fecha seleccionada (combinando guardadas y pendientes)
+  attendancesForSelectedDate = computed(() => {
+    const map = new Map<number, boolean>();
+    const fecha = this.selectedDate();
+    
+    // Primero cargar las asistencias guardadas para esta fecha
+    this.registros()
+      .filter(r => r.date === fecha)
+      .forEach(r => {
+        map.set(r.studentId, r.present);
+      });
+    
+    // Luego aplicar los cambios pendientes (sobrescriben los guardados)
+    this.pendingAttendances().forEach((present, studentId) => {
+      map.set(studentId, present);
+    });
+    
+    return map;
+  });
+
+  hasPendingChanges = computed(() => this.pendingAttendances().size > 0);
 
   porcentajePorAlumno = computed(() => {
     const total = this.fechas().length;
@@ -98,119 +163,175 @@ export class CourseAttendanceComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDatos();
+    this.loadSubjects();
+  }
+
+  private loadSubjects() {
+    const cid = this.courseId();
+    this.subjectService.getSubjectsByCourse(cid).subscribe({
+      next: subjects => {
+        this.subjects.set(subjects);
+      },
+      error: err => console.error('Error al cargar materias:', err)
+    });
   }
 
   private cargarDatos() {
     const cid = this.courseId();
+    const subjectId = this.subjectId();
+
+    console.log('📚 Cargando asistencias - curso:', cid, 'materia:', subjectId);
 
     this.presentService.getAttendancesByCourse(cid).subscribe({
       next: data => {
+        console.log('✅ Asistencias recibidas (total):', data.length);
+        console.log('✅ Asistencias con subjectId:', data.filter(r => r.subjectId).length);
+        if (subjectId) {
+          const filtered = data.filter(r => r.subjectId === subjectId);
+          console.log('✅ Asistencias filtradas por materia', subjectId, ':', filtered.length);
+        }
         this.registros.set(data);
+        // Inicializar asistencias para la fecha seleccionada
+        this.inicializarAsistenciasFecha();
       },
       error: err => {
-        console.error('Error al cargar asistencias:', err);
+        console.error('❌ Error al cargar asistencias:', err);
+        // Aún así inicializar con valores por defecto
+        this.inicializarAsistenciasFecha();
       }
     });
+  }
+
+  private inicializarAsistenciasFecha(): void {
+    const fecha = this.selectedDate();
+    const asistenciasExistentes = new Map<number, boolean>();
+    
+    // Cargar asistencias guardadas para la fecha seleccionada (filtradas por materia)
+    this.filteredRegistros()
+      .filter(r => r.date === fecha)
+      .forEach(r => {
+        asistenciasExistentes.set(r.studentId, r.present);
+      });
+    
+    // Si no hay asistencias guardadas, inicializar todas como presentes por defecto
+    if (asistenciasExistentes.size === 0) {
+      this.students().forEach(student => {
+        if (student.id) {
+          asistenciasExistentes.set(student.id, true);
+        }
+      });
+    }
+    
+    this.pendingAttendances.set(asistenciasExistentes);
   }
 
   // ─────────────────────────────────────────────────────────────
   // MÉTODOS PÚBLICOS — visibles desde el template
   // ─────────────────────────────────────────────────────────────
 
-  public agregarFechaHoy(): void {
-    const hoy = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
-    const cid = this.courseId();
-
-    if (this.fechas().includes(hoy)) {
-      alert('Ya existe la asistencia de hoy');
-      return;
-    }
-
-    // Crear asistencias para todos los estudiantes (por defecto presentes)
-    const nuevos: Present[] = this.students()
-      .filter(s => s.id !== undefined)
-      .map(s => ({
-        courseId: cid,
-        studentId: s.id!,
-        date: hoy,
-        present: true
-      }));
-
-    this.presentService.createManyAttendances(nuevos).subscribe({
-      next: creados => {
-        this.registros.update(prev => [...prev, ...creados]);
-      },
-      error: err => {
-        console.error('Error al crear asistencias:', err);
-        alert('Error al crear las asistencias de hoy');
-      }
-    });
-  }
-
-  public toggleAsistencia(studentId: number, date: string, checked: boolean): void {
-    const registro = this.registros().find(r => r.studentId === studentId && r.date === date);
+  public onDateChange(newDate: string): void {
+    // Al cambiar la fecha, cargar las asistencias existentes para esa fecha
+    this.selectedDate.set(newDate);
     
-    if (!registro) {
-      // Si no existe, crear nueva asistencia
-      const nueva: Present = {
-        courseId: this.courseId(),
-        studentId: studentId,
-        date: date,
-        present: checked
-      };
-      
-      this.presentService.markAttendance(nueva).subscribe({
-        next: creada => {
-          this.registros.update(prev => [...prev, creada]);
-        },
-        error: err => {
-          console.error('Error al crear asistencia:', err);
+    // Cargar asistencias guardadas para la nueva fecha (filtradas por materia)
+    const asistenciasExistentes = new Map<number, boolean>();
+    this.filteredRegistros()
+      .filter(r => r.date === newDate)
+      .forEach(r => {
+        asistenciasExistentes.set(r.studentId, r.present);
+      });
+    
+    // Si no hay asistencias guardadas, inicializar todas como presentes por defecto
+    if (asistenciasExistentes.size === 0) {
+      this.students().forEach(student => {
+        if (student.id) {
+          asistenciasExistentes.set(student.id, true);
         }
       });
+    }
+    
+    this.pendingAttendances.set(asistenciasExistentes);
+  }
+
+
+  public toggleAsistencia(studentId: number, checked: boolean): void {
+    // Actualizar el mapa de asistencias pendientes para la fecha seleccionada
+    this.pendingAttendances.update(prev => {
+      const newMap = new Map(prev);
+      newMap.set(studentId, checked);
+      return newMap;
+    });
+  }
+
+  public marcarTodos(present: boolean): void {
+    // Marcar todos los estudiantes como presentes o ausentes
+    this.pendingAttendances.update(prev => {
+      const newMap = new Map(prev);
+      this.students().forEach(student => {
+        if (student.id) {
+          newMap.set(student.id, present);
+        }
+      });
+      return newMap;
+    });
+  }
+
+  public cargarAsistencias(): void {
+    if (this.pendingAttendances().size === 0) {
+      alert('No hay cambios para guardar');
       return;
     }
 
-    if (!registro.id) {
-      console.error('Asistencia sin ID, no se puede actualizar');
+    if (!confirm('¿Guardar las asistencias de esta fecha?')) {
       return;
     }
 
-    const actualizado = { ...registro, present: checked };
+    this.saving.set(true);
+    const fecha = this.selectedDate();
+    const cid = this.courseId();
+    
+    // Crear array de asistencias a guardar (usar subjectId del input - tab activo)
+    const subjectId = this.subjectId();
+        const asistencias: Present[] = Array.from(this.pendingAttendances().entries()).map(([studentId, present]) => ({
+      courseId: cid,
+      studentId: studentId,
+      date: fecha,
+      present: present,
+      subjectId: subjectId || undefined // Usar subjectId del input (tab activo)
+    }));
 
-    this.presentService.updateAttendance(registro.id, actualizado).subscribe({
-      next: res => {
-        this.registros.update(prev => prev.map(r => r.id === res.id ? res : r));
+    this.presentService.saveAttendancesBulk(asistencias).subscribe({
+      next: (guardados) => {
+        // Recargar asistencias desde el servidor para asegurar filtrado correcto por materia
+        this.cargarDatos();
+        
+        // Emitir evento para que el componente padre refresque los promedios de asistencia
+        this.attendancesUpdated.emit();
+        
+        // Limpiar cambios pendientes
+        this.pendingAttendances.set(new Map());
+        this.saving.set(false);
+        alert('Asistencias guardadas exitosamente');
       },
-      error: err => {
-        console.error('Error al actualizar asistencia:', err);
+      error: (err) => {
+        console.error('Error al guardar asistencias:', err);
+        alert('Error al guardar las asistencias. Por favor, intenta nuevamente.');
+        this.saving.set(false);
       }
     });
   }
 
-  public marcarTodosFecha(date: string, present: boolean): void {
-    const registrosDeFecha = this.registros().filter(r => r.date === date);
-
-    registrosDeFecha.forEach(r => {
-      if (!r.id) return;
-      const actualizado = { ...r, present };
-      this.presentService.updateAttendance(r.id, actualizado).subscribe({
-        next: res => {
-          this.registros.update(prev => prev.map(reg => reg.id === res.id ? res : reg));
-        },
-        error: err => {
-          console.error('Error al actualizar asistencia:', err);
-        }
-      });
-    });
-
-    // Actualizar estado local inmediatamente
-    this.registros.update(prev =>
-      prev.map(r => r.date === date ? { ...r, present } : r)
-    );
+  public cancelarCambios(): void {
+    if (confirm('¿Deseas descartar todos los cambios sin guardar?')) {
+      this.pendingAttendances.set(new Map());
+    }
   }
 
   public formatearFecha(iso: string): string {
-    return new Date(iso).toLocaleDateString('es-ES', {
+    // Parsear la fecha manualmente para evitar problemas de zona horaria
+    const [year, month, day] = iso.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month es 0-indexed
+    return date.toLocaleDateString('es-ES', {
       weekday: 'short',
       day: '2-digit',
       month: 'short'
@@ -282,7 +403,10 @@ export class CourseAttendanceComponent implements OnInit {
     });
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const fileName = `Asistencias_${this.courseId()}_${this.hoyFormateado().replace(/ /g, '_')}.xlsx`;
+    const courseName = this.courseName() || `Curso_${this.courseId()}`;
+    const sanitizedCourseName = courseName.replace(/[^a-zA-Z0-9]/g, '_');
+    const fecha = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const fileName = `Asistencias_${sanitizedCourseName}_${fecha}.xlsx`;
     saveAs(new Blob([buffer]), fileName);
   }
 }

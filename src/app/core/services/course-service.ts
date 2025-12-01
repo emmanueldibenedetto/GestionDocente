@@ -98,4 +98,37 @@ export class CourseService {
   getCoursesByLoggedProfessor(professorId: number): Observable<Course[]> {
     return this.http.get<Course[]>(`${this.BASE_URL}${API_CONFIG.COURSES.BY_PROFESSOR}/${professorId}`);
   }
+
+  archiveCourse(id: number): Observable<Course> {
+    return this.http.post<Course>(`${this.apiUrl}/${id}/archive`, {});
+  }
+
+  unarchiveCourse(id: number): Observable<Course> {
+    return this.http.post<Course>(`${this.apiUrl}/${id}/unarchive`, {});
+  }
+
+  getArchivedCourses(): Observable<Course[]> {
+    return this.http.get<Course[]>(`${this.apiUrl}/archived`);
+  }
+
+  duplicateCourse(id: number, options: { copyStudents?: boolean; copyEvaluationTypes?: boolean; copyEvaluations?: boolean; copySchedules?: boolean }): Observable<{ message: string; newCourseId: number; newCourseName: string }> {
+    return this.http.post<{ message: string; newCourseId: number; newCourseName: string }>(
+      `${this.apiUrl}/${id}/duplicate`,
+      options
+    );
+  }
+
+  searchCourses(query?: string, archived?: boolean): Observable<Course[]> {
+    const params: any = {};
+    if (query) params.search = query;
+    if (archived !== undefined) params.archived = archived;
+    return this.http.get<Course[]>(this.apiUrl, { params });
+  }
+
+  sendPersonalizedMessage(courseId: number, subject: string, message: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}/${courseId}/send-personalized-message`,
+      { subject, message }
+    );
+  }
 }

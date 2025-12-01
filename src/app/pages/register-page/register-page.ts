@@ -2,14 +2,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth-service';
 import { celularValidator } from '../../validators/cell-validator/cell-validator';
 
 @Component({
   selector: 'app-register-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './register-page.html',
   styleUrls: ['./register-page.css']
 })
@@ -39,7 +39,7 @@ export class RegisterPage
     return p && c && p !== c;
   });
 
-onSubmit() {
+  onSubmit() {
   this.submitted = true;
   this.errorMessage.set(null);
   this.message.set(null);
@@ -78,6 +78,10 @@ onSubmit() {
     }
   });
 }
+
+  getGmailUrl(): string {
+    return 'https://mail.google.com/mail/u/0/#inbox';
+  }
 
 
 
